@@ -4,9 +4,11 @@ import {
   aws_iam as iam,
   aws_kms as kms,
   aws_sns as sns,
+  custom_resources as cr,
+  Fn,
+  Token,
 } from 'aws-cdk-lib';
 import type { StackProps } from 'aws-cdk-lib';
-import { StackSetDeploymentModel } from 'aws-cdk-lib/aws-codepipeline-actions';
 import {
   DeploymentType,
   StackSet,
@@ -45,7 +47,7 @@ export class BudgetAlertsStack extends Stack {
         resources: [alertTopicKey.keyArn],
         conditions: {
           StringEquals: {
-            'aws:PrincipalOrgID': 'r-13ix',
+            'aws:PrincipalOrgID': 'o-blikiivk10',
           },
         },
       }),
@@ -63,16 +65,89 @@ export class BudgetAlertsStack extends Stack {
         resources: [budgetAlertsTopic.topicArn],
         conditions: {
           StringEquals: {
-            'aws:PrincipalOrgID': 'r-13ix',
+            'aws:PrincipalOrgID': 'o-blikiivk10',
           },
         },
       }),
     );
+    const listLz = new cr.AwsCustomResource(this, 'ListLandingZones', {
+      onCreate: {
+        service: 'ControlTower',
+        action: 'listLandingZones',
+        region: this.region,
+        physicalResourceId: cr.PhysicalResourceId.of('ListLandingZonesOnce'),
+        outputPaths: ['landingZones.0.arn'],
+      },
+      onUpdate: {
+        service: 'ControlTower',
+        action: 'listLandingZones',
+        region: this.region,
+        physicalResourceId: cr.PhysicalResourceId.of('ListLandingZonesOnce'),
+        outputPaths: ['landingZones.0.arn'],
+      },
+      policy: cr.AwsCustomResourcePolicy.fromSdkCalls({
+        resources: cr.AwsCustomResourcePolicy.ANY_RESOURCE,
+      }),
+    });
+
+    const lzArn = listLz.getResponseField('landingZones.0.arn');
+
+    // 2) Parse region from ARN for GetLandingZone calls
+    const arnParts = Fn.split(':', lzArn); // arn:partition:service:region:account:resource
+    const lzRegion = Fn.select(3, arnParts);
+
+    // 3) Fetch landing zone details and read manifest.governedRegions
+    // Response shape: landingZone.manifest is a JSON value containing governedRegions. :contentReference[oaicite:1]{index=1}
+    const getLz = new cr.AwsCustomResource(this, 'GetLandingZone', {
+      onCreate: {
+        service: 'ControlTower',
+        action: 'getLandingZone',
+        region: this.region,
+        parameters: { landingZoneIdentifier: lzArn },
+        physicalResourceId: cr.PhysicalResourceId.of('GetLandingZoneByDiscoveredArn'),
+        outputPaths: ['landingZone.manifest.governedRegions'],
+      },
+      onUpdate: {
+        service: 'ControlTower',
+        action: 'getLandingZone',
+        region: lzRegion,
+        parameters: { landingZoneIdentifier: lzArn },
+        physicalResourceId: cr.PhysicalResourceId.of('GetLandingZoneByDiscoveredArn'),
+        outputPaths: ['landingZone.manifest.governedRegions'],
+      },
+      policy: cr.AwsCustomResourcePolicy.fromSdkCalls({
+        resources: cr.AwsCustomResourcePolicy.ANY_RESOURCE,
+      }),
+    });
+
+    const regions = getLz.getResponseField('landingZone.manifest.governedRegions');
+
+    const listRoots = new cr.AwsCustomResource(this, 'ListOrgRoots', {
+      onCreate: {
+        service: 'Organizations',
+        action: 'listRoots',
+        region: this.region,
+        physicalResourceId: cr.PhysicalResourceId.of('ListOrgRootsOnce'),
+        outputPaths: ['Roots.0.Id', 'Roots.0.Arn', 'Roots.0.Name'],
+      },
+      onUpdate: {
+        service: 'Organizations',
+        action: 'listRoots',
+        region: this.region,
+        physicalResourceId: cr.PhysicalResourceId.of('ListOrgRootsOnce'),
+        outputPaths: ['Roots.0.Id'],
+      },
+      policy: cr.AwsCustomResourcePolicy.fromSdkCalls({
+        resources: cr.AwsCustomResourcePolicy.ANY_RESOURCE,
+      }),
+    });
+
+    const rootOuId = listRoots.getResponseField('Roots.0.Id'); // e.g. r-xxxx
 
     new StackSet(this, 'BudgetAlertStackSet', {
       target: StackSetTarget.fromOrganizationalUnits({
-        organizationalUnits: ['ou-xxxx-xxxxxxxx', 'ou-yyyy-yyyyyyyy'],
-        regions: ['us-east-1', 'us-west-2'],
+        organizationalUnits: [rootOuId],
+        regions: Token.asList(regions),
       }),
       template: StackSetTemplate.fromStackSetStack(
         new BudgetAlert(this, 'BudgetAlertTemplate', {
