@@ -1,6 +1,8 @@
-import {Stack, StackProps, aws_budgets as budgets, aws_iam as iam, aws_sns as sns} from 'aws-cdk-lib';
-import {StackSetStack, StackSetStackProps} from 'cdk-stacksets';
-import { Construct } from 'constructs';
+import { Stack, aws_budgets as budgets, aws_iam as iam, aws_sns as sns } from 'aws-cdk-lib';
+import type { StackProps } from 'aws-cdk-lib';
+import { StackSetStack } from 'cdk-stacksets';
+import type { StackSetStackProps } from 'cdk-stacksets';
+import type { Construct } from 'constructs';
 // import * as sqs from 'aws-cdk-lib/aws-sqs';
 
 export class BudgetAlertsStack extends Stack {
@@ -38,7 +40,7 @@ interface BudgetAlertStackSetProps extends StackSetStackProps {
   topic: sns.ITopic;
 }
 
-class BudgetAlert extends StackSetStack {
+class _BudgetAlert extends StackSetStack {
   constructor(scope: Construct, id: string, props: BudgetAlertStackSetProps) {
     super(scope, id, props);
 
