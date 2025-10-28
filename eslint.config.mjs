@@ -2,7 +2,7 @@
 // See: https://eslint.org/docs/latest/use/configure/configuration-files-new
 import js from '@eslint/js';
 import tseslint from 'typescript-eslint';
-import prettier from 'eslint-config-prettier';
+import prettierRecommended from 'eslint-plugin-prettier/recommended';
 import { fileURLToPath } from 'node:url';
 import { dirname } from 'node:path';
 
@@ -12,19 +12,15 @@ const tsconfigRootDir = dirname(fileURLToPath(import.meta.url));
 export default [
   // Ignore generated / dependency directories
   {
-    ignores: [
-      'cdk.out',
-      'node_modules',
-      '**/*.d.ts'
-    ]
+    ignores: ['cdk.out', 'node_modules', '**/*.d.ts'],
   },
   // Base recommended JS rules
   js.configs.recommended,
   // TypeScript strict + stylistic configs (scoped to TS files only)
-  ...[
-    ...tseslint.configs.strictTypeChecked,
-    ...tseslint.configs.stylisticTypeChecked,
-  ].map(c => ({ ...c, files: ['**/*.ts', '**/*.tsx'] })),
+  ...[...tseslint.configs.strictTypeChecked, ...tseslint.configs.stylisticTypeChecked].map((c) => ({
+    ...c,
+    files: ['**/*.ts', '**/*.tsx'],
+  })),
   // Project specific TypeScript overrides
   {
     files: ['**/*.ts', '**/*.tsx'],
@@ -36,16 +32,22 @@ export default [
     },
     rules: {
       // Prefer explicit type-only imports
-      '@typescript-eslint/consistent-type-imports': ['error', { prefer: 'type-imports', fixStyle: 'inline-type-imports' }],
+      '@typescript-eslint/consistent-type-imports': [
+        'error',
+        { prefer: 'type-imports', fixStyle: 'inline-type-imports' },
+      ],
       // Common safety rules for async code
       '@typescript-eslint/no-floating-promises': 'error',
       '@typescript-eslint/no-misused-promises': 'error',
       // Allow unused underscore-prefixed variables (often in callbacks)
-      '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
+      '@typescript-eslint/no-unused-vars': [
+        'warn',
+        { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
+      ],
       // CDK patterns frequently use classes / decorators; adjust strictness as needed
       '@typescript-eslint/explicit-member-accessibility': ['off'],
-      // Let Prettier handle formatting conflicts (use core quotes rule if needed; disabled by Prettier)
-      quotes: 'off',
+      // disable quote enforcement (handled by Prettier)
+      quotes: ['off'],
     },
   },
   // Test files: provide Jest globals (plugin removed for ESLint v9 compatibility)
@@ -60,10 +62,10 @@ export default [
         beforeEach: true,
         afterEach: true,
         describe: true,
-        it: true
-      }
+        it: true,
+      },
     },
-    rules: {}
+    rules: {},
   },
   // Jest config file (CommonJS) - define Node/CommonJS globals
   {
@@ -74,13 +76,12 @@ export default [
         exports: true,
         require: true,
         __dirname: true,
-        process: true
+        process: true,
       },
-      sourceType: 'commonjs'
+      sourceType: 'commonjs',
     },
-    rules: {}
+    rules: {},
   },
   // Integrate Prettier: disable formatting rules conflicting with Prettier
-  prettier,
+  prettierRecommended,
 ];
-

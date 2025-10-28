@@ -1,4 +1,4 @@
-import { Stack, aws_budgets as budgets, aws_iam as iam, aws_sns as sns } from 'aws-cdk-lib';
+import { Stack, aws_budgets as budgets, aws_iam as iam, aws_kms as kms, aws_sns as sns } from 'aws-cdk-lib';
 import type { StackProps } from 'aws-cdk-lib';
 import { StackSetStack } from 'cdk-stacksets';
 import type { StackSetStackProps } from 'cdk-stacksets';
@@ -17,9 +17,15 @@ export class BudgetAlertsStack extends Stack {
     //   visibilityTimeout: cdk.Duration.seconds(300)
     // });
 
-    const budgetAlertsTopic = new sns.Topic(this, 'BudgetAlertsTopic', {
-      displayName: 'Budget Alerts Topic'
+    const alertTopicKey = new kms.Key(this, "AlertTopicKey", {
+      enableKeyRotation: true
     });
+
+    const budgetAlertsTopic = new sns.Topic(this, 'BudgetAlertsTopic', {
+      displayName: 'Budget Alerts Topic',
+      masterKey: alertTopicKey
+    });
+
     budgetAlertsTopic.addToResourcePolicy(new iam.PolicyStatement({
       actions: ['SNS:Publish'],
       principals: [new iam.ServicePrincipal('budgets.amazonaws.com')],
