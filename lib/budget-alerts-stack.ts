@@ -205,23 +205,6 @@ class BudgetAlert extends StackSetStack {
         AccountId: this.account, // asks for THIS account’s email
       },
     });
-    //const emailLookup = new CustomResource(this, 'AccountEmailLookup', {
-    //serviceToken: Arn.format({
-    //region: this.region,
-    //service: 'lambda',
-    //resource: 'function',
-    //resourceName: 'DescribeAccountEmailProviderFn',
-    //account: DELEGATED_ADMIN_ACCOUNT_ID,
-    //arnFormat: ArnFormat.COLON_RESOURCE_NAME,
-    //partition: this.partition,
-    //}),
-    //properties: {
-    //AccountId: this.account, // asks for THIS account’s email
-    //},
-    //});
-    // Use it in your stack (exposes "Email" from the Lambda’s Data.Email):
-    //const emailLookup = new cr.AwsCustomResource(this, 'GetAccountEmail', {
-    //});
     const accountEmail = emailLookup.getAttString('Email');
 
     new budgets.CfnBudget(this, 'MonthlyBudget', {
@@ -231,6 +214,14 @@ class BudgetAlert extends StackSetStack {
         budgetLimit: {
           amount: 100,
           unit: 'USD',
+        },
+        filterExpression: {
+          not: {
+            dimensions: {
+              key: 'RECORD_TYPE',
+              values: ['Credit'],
+            },
+          },
         },
       },
       notificationsWithSubscribers: [
