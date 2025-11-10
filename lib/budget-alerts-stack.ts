@@ -23,7 +23,6 @@ import {
   StackSetTemplate,
 } from 'cdk-stacksets';
 import type { Construct } from 'constructs';
-import { permission } from 'process';
 
 const ORG_ID = 'o-blikiivk10';
 const BUDGGET_ALERTS_TOPIC_NAME = 'BudgetAlerts';
