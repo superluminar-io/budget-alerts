@@ -1,14 +1,41 @@
-# Welcome to your CDK TypeScript project
+# Budget Alerts
 
-This is a blank project for CDK development with TypeScript.
+Budget Alerts is a Cloud Development Kit (CDK)-based project that helps you set
+up automated AWS Budget Alerts for cost monitoring across all organizational units
+within AWS Organizations. This project utilizes AWS Lambda, AWS Budgets, and
+AWS Organizations services to create a seamless way of monitoring and alerting
+on costs.
 
-The `cdk.json` file tells the CDK Toolkit how to execute your app.
+Budgets are rolled out to all accounts under the AWS Organization using the
+CloudFormation self managed stack sets.
 
-## Useful commands
+## Features
+- Automatically generates AWS Budget Alerts.
+- Sends notifications via email when thresholds are exceeded.
+- Supports accounts under AWS Organizations.
+- Creates resources and permissions safely using CDK.
 
-* `npm run build`   compile typescript to js
-* `npm run watch`   watch for changes and compile
-* `npm run test`    perform the jest unit tests
-* `npx cdk deploy`  deploy this stack to your default AWS account/region
-* `npx cdk diff`    compare deployed stack with current state
-* `npx cdk synth`   emits the synthesized CloudFormation template
+## Installation
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/superluminar-io/budget-alerts.git
+   cd budget-alerts
+   ```
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+## Usage
+- To deploy the CDK stack to your AWS account:
+  ```bash
+  npx cdk deploy
+  ```
+- Compare deployed stack with the current state:
+  ```bash
+  npx cdk diff
+  ```
+- Synthesize the CloudFormation template:
+  ```bash
+  npx cdk synth
+  ```
