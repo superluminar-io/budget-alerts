@@ -4,5 +4,5 @@ export default {
   semi: true,
   trailingComma: 'all',
   printWidth: 100,
-  arrowParens: 'always'
+  arrowParens: 'always',
 };
