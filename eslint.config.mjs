@@ -48,6 +48,12 @@ export default [
       '@typescript-eslint/explicit-member-accessibility': ['off'],
       // disable quote enforcement (handled by Prettier)
       quotes: ['off'],
+      '@typescript-eslint/restrict-template-expressions': [
+        'error',
+        {
+          allowNumber: true,
+        },
+      ],
     },
   },
   // Test files: provide Jest globals (plugin removed for ESLint v9 compatibility)

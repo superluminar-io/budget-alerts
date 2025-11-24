@@ -10,7 +10,8 @@
     "test": "jest",
     "cdk": "cdk",
     "lint": "eslint .",
-    "lint:fix": "eslint . --fix"
+    "lint:fix": "eslint . --fix",
+    "config": "ts-node --transpile-only bin/init-budget-config.ts"
   },
   "devDependencies": {
     "@eslint/js": "^9.13.0",
@@ -29,9 +30,11 @@
   "dependencies": {
     "@aws-sdk/client-controltower": "^3.918.0",
     "@aws-sdk/client-organizations": "^3.918.0",
+    "@aws-sdk/util-arn-parser": "^3.893.0",
     "aws-cdk-lib": "2.215.0",
     "cdk-stacksets": "^0.0.152",
     "constructs": "^10.0.0",
-    "esbuild": "^0.25.11"
+    "esbuild": "^0.25.11",
+    "yaml": "^2.8.1"
   }
 }
