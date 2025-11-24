@@ -21,13 +21,27 @@ import {
   StackSetTemplate,
 } from 'cdk-stacksets';
 import type { Construct } from 'constructs';
+import { loadBudgetConfig } from './org/budget-config-loader';
+import {
+  computeOuBudgetAttachments,
+  type OuBudgetAttachment,
+  type OuNode,
+} from './org/budget-planner';
+import { type BudgetConfig } from './org/budget-config';
 
 const ORG_ID = 'o-blikiivk10';
-const DELEGATED_ADMIN_ACCOUNT_ID = '043443579270';
+
+export interface BudgetAlertsStackProps extends StackProps {
+  orgOus: OuNode[];
+  budgetConfig: BudgetConfig;
+}
 
 export class BudgetAlertsStack extends Stack {
-  constructor(scope: Construct, id: string, props?: StackProps) {
+  constructor(scope: Construct, id: string, props: BudgetAlertsStackProps) {
     super(scope, id, props);
+
+    const config = loadBudgetConfig();
+    const attachments = computeOuBudgetAttachments(props.orgOus, config);
 
     const getMailFn = new NodejsFunction(this, 'get-mail', {
       functionName: 'DescribeAccountEmailFn',
@@ -58,31 +72,9 @@ export class BudgetAlertsStack extends Stack {
     });
     permissions.node.addDependency(provider);
 
-    const listRoots = new cr.AwsCustomResource(this, 'ListOrgRoots', {
-      onCreate: {
-        service: 'Organizations',
-        action: 'listRoots',
-        region: this.region,
-        physicalResourceId: cr.PhysicalResourceId.of('ListOrgRootsOnce'),
-        outputPaths: ['Roots.0.Id', 'Roots.0.Arn', 'Roots.0.Name'],
-      },
-      onUpdate: {
-        service: 'Organizations',
-        action: 'listRoots',
-        region: this.region,
-        physicalResourceId: cr.PhysicalResourceId.of('ListOrgRootsOnce'),
-        outputPaths: ['Roots.0.Id'],
-      },
-      policy: cr.AwsCustomResourcePolicy.fromSdkCalls({
-        resources: cr.AwsCustomResourcePolicy.ANY_RESOURCE,
-      }),
-    });
-
-    const rootOuId = listRoots.getResponseField('Roots.0.Id'); // e.g. r-xxxx
-
     const assetBucketPrefix = 'budget-alerts-stackset-assets';
     const assetBucket = new s3.Bucket(this, 'Assets', {
-      bucketName: `${assetBucketPrefix}-${this.region}`,
+      bucketName: `${assetBucketPrefix}-${this.account}-${this.region}`,
     });
 
     assetBucket.addToResourcePolicy(
@@ -93,28 +85,37 @@ export class BudgetAlertsStack extends Stack {
       }),
     );
 
-    const target = StackSetTarget.fromOrganizationalUnits({
-      organizationalUnits: [rootOuId],
-      regions: [this.region],
-    });
-    const alertStackSet = new StackSet(this, 'BudgetAlertStackSet', {
-      target,
-      template: StackSetTemplate.fromStackSetStack(
-        new BudgetAlert(this, 'BudgetAlertTemplate', {
-          assetBuckets: [assetBucket],
-          assetBucketPrefix: assetBucketPrefix,
-        }),
-      ),
-      deploymentType: DeploymentType.serviceManaged(),
-      capabilities: [Capability.NAMED_IAM],
-    });
-    alertStackSet.node.addDependency(assetBucket);
-    alertStackSet.node.addDependency(permissions);
+    for (const attachment of attachments) {
+      const target = StackSetTarget.fromOrganizationalUnits({
+        organizationalUnits: [attachment.ouId],
+        regions: [this.region],
+      });
+      const alertStackSet = new StackSet(this, `BudgetAlertStackSet-${attachment.ouId}`, {
+        target,
+        template: StackSetTemplate.fromStackSetStack(
+          new BudgetAlert(this, `BudgetAlertTemplate-${attachment.ouId}`, {
+            assetBuckets: [assetBucket],
+            assetBucketPrefix: assetBucketPrefix,
+            delegatedAdminAccountId: Stack.of(this).account,
+            budget: attachment,
+          }),
+        ),
+        deploymentType: DeploymentType.serviceManaged(),
+        capabilities: [Capability.NAMED_IAM],
+      });
+      alertStackSet.node.addDependency(assetBucket);
+      alertStackSet.node.addDependency(permissions);
+    }
   }
 }
 
+export interface BudgetAlertProps extends StackSetStackProps {
+  delegatedAdminAccountId: string;
+  budget: OuBudgetAttachment;
+}
+
 class BudgetAlert extends StackSetStack {
-  constructor(scope: Construct, id: string, props?: StackSetStackProps) {
+  constructor(scope: Construct, id: string, props: BudgetAlertProps) {
     super(scope, id, props);
 
     const emailLookup = new CustomResource(this, 'AccountEmailLookup', {
@@ -123,7 +124,7 @@ class BudgetAlert extends StackSetStack {
         service: 'lambda',
         resource: 'function',
         resourceName: 'DescribeAccountEmailProviderFn',
-        account: DELEGATED_ADMIN_ACCOUNT_ID,
+        account: props.delegatedAdminAccountId,
         arnFormat: ArnFormat.COLON_RESOURCE_NAME,
         partition: this.partition,
       }),
@@ -138,8 +139,8 @@ class BudgetAlert extends StackSetStack {
         budgetType: 'COST',
         timeUnit: 'MONTHLY',
         budgetLimit: {
-          amount: 100,
-          unit: 'USD',
+          amount: props.budget.amount,
+          unit: props.budget.currency,
         },
         filterExpression: {
           not: {
@@ -156,6 +157,20 @@ class BudgetAlert extends StackSetStack {
             notificationType: 'ACTUAL',
             comparisonOperator: 'GREATER_THAN',
             threshold: 50,
+            thresholdType: 'PERCENTAGE',
+          },
+          subscribers: [
+            {
+              subscriptionType: 'EMAIL',
+              address: accountEmail,
+            },
+          ],
+        },
+        {
+          notification: {
+            notificationType: 'ACTUAL',
+            comparisonOperator: 'GREATER_THAN',
+            threshold: 100,
             thresholdType: 'PERCENTAGE',
           },
           subscribers: [
