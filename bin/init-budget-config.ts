@@ -71,6 +71,42 @@ function buildOrMergeConfig(ous: OuNode[], existing: BudgetConfig | null): Budge
 }
 
 /**
+ * Remove config entries for OUs that are no longer present in the org,
+ * but only if `prune` is true.
+ */
+function pruneUnknownOus(config: BudgetConfig, knownOuIds: Set<string>, prune: boolean): void {
+  const allIds = Object.keys(config.organizationalUnits);
+
+  const unknownIds = allIds.filter((id) => !knownOuIds.has(id));
+
+  if (unknownIds.length === 0) {
+    return;
+  }
+
+  if (!prune) {
+    console.error(
+      `Config contains ${unknownIds.length.toString()} OU id(s) ` +
+        `that are no longer in the organization: ${unknownIds.join(', ')}`,
+    );
+
+    console.error(
+      'Run this script again with "--prune" to remove them automatically, ' +
+        'or edit budget-config.yaml manually.',
+    );
+    return;
+  }
+
+  for (const id of unknownIds) {
+    // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+    delete config.organizationalUnits[id];
+  }
+
+  console.error(
+    `Pruned ${unknownIds.length.toString()} OU id(s) from config: ${unknownIds.join(', ')}`,
+  );
+}
+
+/**
  * Attach informational comments (OU name + parent) to the
  * `organizationalUnits` map entries in the YAML document.
  */
@@ -123,6 +159,8 @@ function addOuCommentsToDocument(
  * Default config path: ./budget-config.yaml
  */
 async function main() {
+  const args = process.argv.slice(2);
+  const prune = args.includes('--prune');
   console.log('Initializing budget config...');
   const configPath = resolve('budget-config.yaml');
 
@@ -133,6 +171,11 @@ async function main() {
   console.error(`Found ${ous.length} OUs under root ${root.name} (${root.id}).`);
 
   const existing = loadExistingConfig(configPath);
+
+  const knownOuIds = new Set(ous.map((o) => o.id));
+  if (existing) {
+    pruneUnknownOus(existing, knownOuIds, prune);
+  }
   const merged = buildOrMergeConfig(ous, existing);
 
   const doc = new YAML.Document();
