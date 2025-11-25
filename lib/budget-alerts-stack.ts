@@ -28,8 +28,7 @@ import {
   type OuNode,
 } from './org/budget-planner';
 import { type BudgetConfig } from './org/budget-config';
-
-const ORG_ID = 'o-blikiivk10';
+import { AwsCustomResource } from 'aws-cdk-lib/custom-resources';
 
 export interface BudgetAlertsStackProps extends StackProps {
   orgOus: OuNode[];
@@ -43,6 +42,20 @@ export class BudgetAlertsStack extends Stack {
     const config = loadBudgetConfig();
     const attachments = computeOuBudgetAttachments(props.orgOus, config);
 
+    const getOrgId = new AwsCustomResource(this, 'GetOrgId', {
+      onUpdate: {
+        service: 'Organizations',
+        action: 'describeOrganization',
+        physicalResourceId: cr.PhysicalResourceId.of('Id'),
+        parameters: {},
+      },
+      policy: cr.AwsCustomResourcePolicy.fromSdkCalls({
+        resources: cr.AwsCustomResourcePolicy.ANY_RESOURCE,
+      }),
+    });
+
+    const orgId = getOrgId.getResponseField('Organization.Id');
+
     const getMailFn = new NodejsFunction(this, 'get-mail', {
       functionName: 'DescribeAccountEmailFn',
     });
@@ -53,7 +66,7 @@ export class BudgetAlertsStack extends Stack {
     });
 
     provider.onEventHandler.addPermission('Invoke', {
-      principal: new iam.OrganizationPrincipal(ORG_ID),
+      principal: new iam.OrganizationPrincipal(orgId),
     });
 
     getMailFn.addToRolePolicy(
@@ -68,7 +81,7 @@ export class BudgetAlertsStack extends Stack {
       action: 'lambda:InvokeFunction',
       functionName: providerName,
       principal: '*',
-      principalOrgId: ORG_ID, // <— put your Org ID here
+      principalOrgId: orgId,
     });
     permissions.node.addDependency(provider);
 
@@ -81,7 +94,7 @@ export class BudgetAlertsStack extends Stack {
       new iam.PolicyStatement({
         actions: ['s3:Get*', 's3:List*'],
         resources: [assetBucket.arnForObjects('*'), assetBucket.bucketArn],
-        principals: [new iam.OrganizationPrincipal(ORG_ID)],
+        principals: [new iam.OrganizationPrincipal(orgId)],
       }),
     );
 
