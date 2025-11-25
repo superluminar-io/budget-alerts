@@ -185,8 +185,24 @@ async function main() {
 
   const yamlText = String(doc);
   writeFileSync(configPath, yamlText, 'utf8');
-
   console.error(`Written budget config to ${configPath}`);
+
+  const cdkJsonPath = resolve('cdk.json');
+  writeFileSync(
+    cdkJsonPath,
+    JSON.stringify(
+      {
+        app: 'npx budget-alerts',
+        context: {
+          budgetConfigPath: 'budget-config.yaml',
+        },
+      },
+      null,
+      2,
+    ),
+    'utf8',
+  );
+  console.error(`Written CDK app config to ${cdkJsonPath}`);
 }
 
 main().catch((err: unknown) => {
