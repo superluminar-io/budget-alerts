@@ -12,7 +12,7 @@ const tsconfigRootDir = dirname(fileURLToPath(import.meta.url));
 export default [
   // Ignore generated / dependency directories
   {
-    ignores: ['cdk.out', 'node_modules', '**/*.d.ts'],
+    ignores: ['cdk.out', 'node_modules', '**/*.d.ts', 'dist'],
   },
   // Base recommended JS rules
   js.configs.recommended,
