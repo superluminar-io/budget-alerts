@@ -4,7 +4,6 @@ import {
   computeEffectiveBudgets,
   computeHomogeneousSubtrees,
   computeOuBudgetAttachments,
-  OuBudgetAttachment,
   selectOuBudgetAttachments,
   validateBudgetConfig,
   type OuNode,
