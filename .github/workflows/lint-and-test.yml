@@ -1,7 +1,15 @@
-name: PR Tests
+name: Tests
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
 
 on:
   pull_request:
+    branches:
+      - main
+  push:
     branches:
       - main
 
@@ -12,12 +20,12 @@ jobs:
 
     steps:
       - name: Check out source
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
-      - name: Use Node.js 20
-        uses: actions/setup-node@v4
+      - name: Use Node.js 24
+        uses: actions/setup-node@v6
         with:
-          node-version: 20
+          node-version: 24
           cache: 'npm'
 
       - name: Install dependencies
