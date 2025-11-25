@@ -31,7 +31,6 @@ jobs:
         if: success() || failure()
         uses: marocchino/sticky-pull-request-comment@v2
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
           header: test-results
           message: |
             🚦 **Test run complete**
