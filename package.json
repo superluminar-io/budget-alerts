@@ -5,6 +5,9 @@
     "budget-alerts": "dist/bin/budget-alerts.js",
     "budget-alerts-init-config": "dist/bin/init-budget-config.js"
   },
+  "engines": {
+    "node": ">=24.0.0"
+  },
   "scripts": {
     "build": "tsc",
     "watch": "tsc -w",
