@@ -1,5 +1,7 @@
 # 📦 Budget Alerts for AWS Organizations
 
+[![Tests](https://github.com/superluminar-io/budget-alerts/actions/workflows/lint-and-test.yml/badge.svg?branch=main)](https://github.com/superluminar-io/budget-alerts/actions/workflows/lint-and-test.yml)
+
 Automatically deploy budget alerts across your AWS Organization using **service-managed CloudFormation StackSets**, with a simple and declarative YAML configuration.
 
 This tool lets you:
