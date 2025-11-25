@@ -2,8 +2,8 @@
   "name": "budget-alerts",
   "version": "0.1.0",
   "bin": {
-    "budget-alerts": "bin/budget-alerts.js",
-    "budget-alerts-init-config": "bin/init-budget-config.js"
+    "budget-alerts": "dist/bin/budget-alerts.js",
+    "budget-alerts-init-config": "dist/bin/init-budget-config.js"
   },
   "scripts": {
     "build": "tsc",
@@ -15,9 +15,7 @@
     "config": "ts-node --transpile-only bin/init-budget-config.ts"
   },
   "files": [
-    "bin/*.js",
-    "lib/**/*.js",
-    "lib/**/*.d.ts",
+    "dist/**/*.{js,d.ts}",
     "README.md"
   ],
   "devDependencies": {
