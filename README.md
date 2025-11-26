@@ -109,6 +109,29 @@ The package discovers your organization, computes OU budgets, and deploys OU-tar
 
 ---
 
+## 6. OU & budget layout must allow **homogeneous subtrees**
+
+This solution computes **homogeneous subtrees** to minimize the number of StackSets. For this to be possible, your OU layout and budget model must satisfy:
+
+* With the exception of the **management account**, every account should either:
+
+  * live in a **leaf OU**, **or**
+  * share the **same effective budget** as the OU it resides in and all of that OU’s descendants.
+* In other words, within any OU that contains accounts and/or child OUs, the **effective budget must be identical across that entire subtree** if you expect it to be treated as one homogeneous region.
+
+If accounts in the same OU subtree are intended to have **different budgets**, this tool cannot represent that intent with OU-level StackSets and homogeneous subtrees. In that case, you should:
+
+* Move accounts into separate leaf OUs that reflect their budget, or
+* Adjust your budget model so that all accounts in a given OU subtree share the same effective budget.
+
+We know it's a trade-off, but this constraint allows us to deliver a simple,
+predictable, and fully automated solution that works well for the vast majority
+of use cases. Using service managed stacksets at the OU level is a powerful way
+to achieve organization-wide budget governance with minimal overhead and the
+advantage of new accounts automatically inheriting the correct budgets.
+
+---
+
 # 🚀 Quick Start
 
 ## 1. Create an empty project
