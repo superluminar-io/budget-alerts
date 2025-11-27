@@ -117,6 +117,8 @@ To compute valid homogeneous budget regions:
 If accounts within the same OU subtree require different budgets, you must restructure OUs accordingly.
 This tool cannot assign multiple budgets within a single OU subtree.
 
+For more details, see: [visual homogeneous subtrees examples](./docs/homogeneous-subtrees.md).
+
 ---
 
 # 🏗 Architecture Overview
