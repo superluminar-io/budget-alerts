@@ -189,6 +189,166 @@ describe('computeHomogeneousSubtrees', () => {
 
     expect(homogeneousSubtrees).toEqual(new Set(['C', 'D', 'E']));
   });
+
+  describe('homogeneous subtree visual examples', () => {
+    /**
+     * Example 1: Fully homogeneous subtree
+     *
+     * Root
+     * └── Prod (amount: 50)
+     *     ├── TeamA  (inherits 50)
+     *     └── TeamB  (inherits 50)
+     *
+     * Expected:
+     *  - Single attachment at Prod with amount 50
+     *  - Root is not selected (different default budget)
+     */
+    it('Example 1: selects a single attachment for a fully homogeneous subtree', () => {
+      const ous: OuNode[] = [
+        { id: 'root', parentId: null },
+        { id: 'prod', parentId: 'root' },
+        { id: 'teamA', parentId: 'prod' },
+        { id: 'teamB', parentId: 'prod' },
+      ];
+
+      const budgetConfig: BudgetConfig = {
+        default: { amount: 10, currency: 'USD' },
+        organizationalUnits: {
+          // root implicitly uses default(10)
+          prod: { amount: 50, currency: 'USD' },
+          // teamA / teamB inherit 50 from prod
+        },
+      };
+
+      const attachments = computeOuBudgetAttachments(ous, budgetConfig);
+
+      expect(attachments).toEqual([{ ouId: 'prod', amount: 50, currency: 'USD' }]);
+    });
+
+    /**
+     * Example 2: Heterogeneous sibling budgets are fine
+     *
+     * Root
+     * └── Environments
+     *     ├── Dev  (amount: 10)
+     *     └── Prod (amount: 50)
+     *
+     * No accounts live in Root or Environments; only leaf OUs have accounts.
+     *
+     * Expected:
+     *  - Attachments at Dev and Prod (each homogeneous on its own)
+     *  - No attachment at Root / Environments
+     */
+    it('Example 2: selects separate attachments for dev/prod sibling budgets', () => {
+      const ous: OuNode[] = [
+        { id: 'root', parentId: null },
+        { id: 'env', parentId: 'root' },
+        { id: 'dev', parentId: 'env' },
+        { id: 'prod', parentId: 'env' },
+      ];
+
+      const budgetConfig: BudgetConfig = {
+        default: { amount: 10, currency: 'USD' },
+        organizationalUnits: {
+          // root / env both effectively 10 by default
+          dev: { amount: 10, currency: 'USD' }, // explicit but same as default
+          prod: { amount: 50, currency: 'USD' },
+        },
+      };
+
+      const attachments = computeOuBudgetAttachments(ous, budgetConfig);
+
+      expect(attachments).toHaveLength(2);
+      expect(attachments).toEqual(
+        expect.arrayContaining([
+          { ouId: 'dev', amount: 10, currency: 'USD' },
+          { ouId: 'prod', amount: 50, currency: 'USD' },
+        ]),
+      );
+    });
+
+    /**
+     * Example 3: Applications subtree with one override
+     *
+     * Root (default: 10)
+     * └── Applications (inherits 10)
+     *     ├── Payroll    (amount: 20)
+     *     └── Accounting (inherits 10)
+     *
+     * This is fine: Applications does not have accounts, only the leaf OUs do.
+     *
+     * Expected:
+     *  - Attachment at Payroll with 20
+     *  - Attachment at Accounting with 10 (default)
+     *  - No attachment at Applications or Root
+     */
+    it('Example 3: handles one overridden child and one inheriting child under a common parent', () => {
+      const ous: OuNode[] = [
+        { id: 'root', parentId: null },
+        { id: 'applications', parentId: 'root' },
+        { id: 'payroll', parentId: 'applications' },
+        { id: 'accounting', parentId: 'applications' },
+      ];
+
+      const budgetConfig: BudgetConfig = {
+        default: { amount: 10, currency: 'USD' },
+        organizationalUnits: {
+          // root and applications both effectively 10 by default
+          payroll: { amount: 20, currency: 'USD' },
+          // accounting inherits default 10
+        },
+      };
+
+      const attachments = computeOuBudgetAttachments(ous, budgetConfig);
+
+      expect(attachments).toHaveLength(2);
+      expect(attachments).toEqual(
+        expect.arrayContaining([
+          { ouId: 'payroll', amount: 20, currency: 'USD' },
+          { ouId: 'accounting', amount: 10, currency: 'USD' },
+        ]),
+      );
+    });
+
+    /**
+     * Example 4: Corrected layout for the "Finance with diverging budgets" scenario
+     *
+     * Root
+     * ├── Finance-Common (amount: 10)
+     * └── Payroll        (amount: 20)
+     *
+     * Here, accounts live only in leaf OUs and each subtree is homogeneous.
+     *
+     * Expected:
+     *  - Attachment at Finance-Common (10)
+     *  - Attachment at Payroll (20)
+     */
+    it('Example 4: uses separate OUs for finance-common and payroll budgets', () => {
+      const ous: OuNode[] = [
+        { id: 'root', parentId: null },
+        { id: 'finance-common', parentId: 'root' },
+        { id: 'payroll', parentId: 'root' },
+      ];
+
+      const budgetConfig: BudgetConfig = {
+        default: { amount: 10, currency: 'USD' },
+        organizationalUnits: {
+          'finance-common': { amount: 10, currency: 'USD' }, // explicitly 10
+          payroll: { amount: 20, currency: 'USD' },
+        },
+      };
+
+      const attachments = computeOuBudgetAttachments(ous, budgetConfig);
+
+      expect(attachments).toHaveLength(2);
+      expect(attachments).toEqual(
+        expect.arrayContaining([
+          { ouId: 'finance-common', amount: 10, currency: 'USD' },
+          { ouId: 'payroll', amount: 20, currency: 'USD' },
+        ]),
+      );
+    });
+  });
 });
 
 describe('selectOuBudgetAttachments', () => {
