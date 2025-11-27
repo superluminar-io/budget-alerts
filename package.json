@@ -15,7 +15,8 @@
     "cdk": "cdk",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "config": "ts-node --transpile-only bin/init-budget-config.ts"
+    "config": "ts-node --transpile-only bin/init-budget-config.ts",
+    "coverage": "jest --coverage"
   },
   "files": [
     "dist/**/*.{js,d.ts}",
