@@ -2,24 +2,24 @@
 
 [![Tests](https://github.com/superluminar-io/budget-alerts/actions/workflows/lint-and-test.yml/badge.svg?branch=main)](https://github.com/superluminar-io/budget-alerts/actions/workflows/lint-and-test.yml)
 
-Automatically deploy budget alerts across your AWS Organization using **service-managed CloudFormation StackSets**, with a simple and declarative YAML configuration.
+Automatically deploy budget alerts across your AWS Organization using **service-managed CloudFormation StackSets**, driven by a simple and declarative YAML configuration.
 
-This tool lets you:
+This tool allows you to:
 
-* Define **default budgets** for the entire organization
-* Override budgets for specific Organizational Units
-* Automatically compute **minimal homogeneous subtrees**
-* Deploy budgets into **all accounts** in the target OUs
-* Keep your config in sync with your AWS Organization structure
-* Deploy safely and consistently using a single CDK stack
+* Define **default budgets** for the entire Organization
+* Override budgets for specific OUs
+* Automatically compute **homogeneous OU subtrees**
+* Deploy budgets into **all accounts** in each subtree
+* Keep your config synchronized with your Organization structure
+* Use a single CDK stack to control all deployments
 
-Perfect for organizations needing consistent, automated cost-governance across accounts.
+Designed for organizations needing consistent, automated cost governance across AWS accounts.
 
 ---
 
 # 🔐 Requirements & Prerequisites
 
-Before you begin, ensure the following prerequisites are met.
+Before using this solution, ensure the following are in place.
 
 ## 1. Deploy from a CloudFormation **StackSets Delegated Administrator**
 
@@ -32,14 +32,14 @@ npx cdk deploy
 
 from either:
 
-* the **management account** *(root of the AWS Organization)*, or
-* an account explicitly registered as a **CloudFormation StackSets Delegated Administrator**.
+* the **management account**, or
+* an account registered as a **CloudFormation StackSets Delegated Administrator**.
 
-### Register a delegated admin (management account only)
+Register a delegated admin:
 
 ```bash
 aws cloudformation register-delegated-administrator \
-  --account-id <TARGET_ACCOUNT_ID> \
+  --account-id <ACCOUNT_ID> \
   --service-principal cloudformation.amazonaws.com
 ```
 
@@ -52,15 +52,13 @@ aws organizations list-delegated-administrators \
 
 ---
 
-## 2. StackSets must use **service-managed** permissions
-
-This solution deploys AWS Budgets via **service-managed StackSets** targeting OUs.
+## 2. StackSets must use **service-managed permissions**
 
 Required:
 
-* **Trusted access** enabled for CloudFormation
-* Delegated administrator set for service-managed StackSets
-* CloudFormation-created StackSet roles:
+* CloudFormation **trusted access** enabled
+* A delegated StackSets admin account
+* Standard StackSet roles created by CloudFormation:
 
   * `AWSCloudFormationStackSetAdministrationRole`
   * `AWSCloudFormationStackSetExecutionRole`
@@ -74,9 +72,7 @@ aws organizations enable-aws-service-access \
 
 ---
 
-## 3. IAM permissions for deployment
-
-The deploying IAM principal requires:
+## 3. IAM permissions required for deployment
 
 ### Organizations (read-only)
 
@@ -88,16 +84,15 @@ The deploying IAM principal requires:
 
 ### CloudFormation StackSets
 
-* `cloudformation:*`
-  (or Administrative privileges in the delegated admin account)
+* `cloudformation:*` (or AdministratorAccess)
 
-### Budgets API
+### Budgets
 
 * `budgets:*`
 
 ---
 
-## 4. Valid AWS CLI/CDK credentials
+## 4. Valid AWS credentials
 
 Deployment requires valid AWS CLI or AWS SSO credentials on the machine running CDK.
 
@@ -105,7 +100,117 @@ Deployment requires valid AWS CLI or AWS SSO credentials on the machine running 
 
 ## 5. Must be part of the **same AWS Organization**
 
-The package discovers your organization, computes OU budgets, and deploys OU-targeted StackSets. It **cannot** run outside an AWS Organization.
+This solution discovers your Organization, targets OUs, and deploys StackSets.
+It cannot run outside an AWS Organization.
+
+---
+
+## 6. OU layout must allow **homogeneous subtrees**
+
+To compute valid homogeneous budget regions:
+
+* Except for the root management account, **all accounts must either**:
+
+  * live in **leaf OUs**, or
+  * share the **same effective budget** as the OU they belong to and all its descendants.
+
+If accounts within the same OU subtree require different budgets, you must restructure OUs accordingly.
+This tool cannot assign multiple budgets within a single OU subtree.
+
+For more details, see: [visual homogeneous subtrees examples](./docs/homogeneous-subtrees.md).
+
+---
+
+# 🏗 Architecture Overview
+
+This solution automates budget deployment using three core elements:
+
+1. **BudgetAlertsStack**
+   A single CDK stack deployed to the CloudFormation Delegated Administrator account.
+   It analyzes your Organization, reads the configuration, and produces the required StackSets.
+
+2. **StackSet per Homogeneous Subtree**
+   The root stack creates **one StackSet per homogeneous budget subtree**.
+   Each StackSet targets a specific OU and will deploy to all accounts inside it.
+
+3. **Per-Account BudgetAlertsStack Instances**
+   Each StackSet deploys a minimal stack to each account in the target OU:
+
+   * An AWS Budget
+   * An email alert subscription
+
+The architecture diagram (see image) illustrates this high-level structure:
+A centralized orchestrating stack → stacksets per OU subtree → per-account deployments.
+
+![Architecture Diagram](./docs/architecture.png)
+
+---
+
+# 🔄 How It Works
+
+This section summarizes the runtime behavior of the system.
+
+### 1. **Discover the AWS Organization**
+
+During `cdk synth` / `cdk deploy`, the tool:
+
+* Retrieves the Organization root
+* Enumerates all Organizational Units
+* Builds a proper hierarchical OU tree
+
+This ensures deployments always reflect the real structure of your Organization.
+
+---
+
+### 2. **Load & Validate the Configuration**
+
+The tool loads:
+
+```
+budget-config.yaml
+```
+
+It:
+
+* Applies the default budget
+* Applies OU-level overrides
+* Validates that all referenced OUs exist
+* Ensures every OU subtree is budget-consistent
+* Enforces the homogeneous subtree prerequisite
+
+---
+
+### 3. **Compute Homogeneous Subtrees**
+
+A *homogeneous subtree* is an OU subtree where every OU and account has the **same effective budget**.
+
+This step determines the **minimal set of OUs** that require separate StackSets.
+
+Example:
+
+* If `prod/` has a single budget → 1 StackSet
+* If `dev/` uses a different budget → 1 StackSet
+* If a subtree has overrides deeper inside → it splits into multiple StackSets
+
+This gives you:
+
+* Correct propagation of budget rules
+* Minimal number of StackSets
+* No conflicting budgets inside a subtree
+
+---
+
+### 4. **Create a StackSet per Homogeneous Subtree**
+
+For each subtree, the root stack creates a **service-managed CloudFormation StackSet** targeting the subtree’s root OU.
+
+Each StackSet deploys the per-account budget stack to **every account** inside that OU, including future accounts added to it.
+
+Result:
+
+* Fully automated, organization-wide budget rollouts
+* Consistent budget settings
+* No repeated manual deployments
 
 ---
 
@@ -125,30 +230,24 @@ npm init -y
 npm install --save-dev budget-alerts aws-cdk-lib constructs cdk-stacksets
 ```
 
-These provide:
-
-* `budget-alerts` → this package
-* `aws-cdk-lib` + `constructs` → CDK core
-* `cdk-stacksets` → constructs required by BudgetAlertsStack
-
 ---
 
 # 🧩 Initialize configuration
 
-Run:
+Generate the initial config and CDK setup:
 
 ```bash
 npx budget-alerts-init-config
 ```
 
-This generates:
+This creates:
 
 ```
 budget-config.yaml
 cdk.json
 ```
 
-`cdk.json` is automatically configured to run the packaged CDK app:
+The generated `cdk.json` automatically sets:
 
 ```json
 {
@@ -171,51 +270,40 @@ default:
   currency: EUR
 
 organizationalUnits:
-  ou-1234abcd:
+  ou-aaaa1111:
     amount: 25
-  ou-5678efgh:
+  ou-bbbb2222:
     amount: 50
 ```
-
-Notes:
-
-* `default.amount` is required
-* OU entries override the default
-* Unknown OU IDs are rejected
-* OU metadata (name, parent) is stored as comments for readability
 
 ---
 
 # 🔄 Keep the config in sync
 
-Your organization evolves. Refresh your config at any time:
-
 ```bash
 npx budget-alerts-init-config
 ```
 
-Optional prune:
+With prune:
 
 ```bash
 npx budget-alerts-init-config --prune
 ```
 
-* Adds missing OUs
-* Removes OUs no longer in the org
-* Preserves budget values
-* Updates YAML comments
+This will:
+
+* Add new OUs
+* Remove OUs no longer in the Organization
+* Preserve your budget values
+* Update descriptive YAML comments
 
 ---
 
 # ⚙️ Bootstrap (first time only)
 
-Required for CDK deployments:
-
 ```bash
 npx cdk bootstrap
 ```
-
-This prepares your delegated admin account for CDK.
 
 ---
 
@@ -225,23 +313,13 @@ This prepares your delegated admin account for CDK.
 npx cdk deploy
 ```
 
-What happens:
+CDK will:
 
-1. CDK runs `npx budget-alerts` as configured in `cdk.json`
-2. The tool:
-
-   * Discovers the entire AWS Organization structure
-   * Loads and validates `budget-config.yaml`
-   * Resolves your Organization ID dynamically
-   * Computes effective budgets per OU
-   * Computes homogeneous subtrees
-   * Determines StackSet attachment points per OU
-3. CDK deploys:
-
-   * One StackSet per OU where budgets need to be applied
-   * Each StackSet deploys AWS Budgets to all accounts in that OU
-
-The result: **fully automated, consistent budgets across your AWS Organization.**
+* Discover your Organization
+* Validate your configuration
+* Compute homogeneous budget subtrees
+* Create one StackSet per subtree
+* Deploy budgets to all matching accounts
 
 ---
 
@@ -254,32 +332,32 @@ npx cdk synth
 This performs:
 
 * Org discovery
-* Config validation
-* Budget planning
+* Configuration validation
+* Subtree computation
 * StackSet synthesis
 
-But does **not** deploy anything.
+No AWS resources are created.
 
 ---
 
 # 🧼 Cleanup
 
-Removing the deployment:
+Remove all deployed resources:
 
 ```bash
 npx cdk destroy
 ```
 
-This tears down:
+This removes:
 
-* StackSets
-* StackSet instances in every account
-* All AWS Budgets created by this solution
+* The central BudgetAlertsStack
+* All generated StackSets
+* All per-account budget stacks
+* All AWS Budgets created by them
 
 ---
 
 # 🤝 Support
 
-This solution is maintained by **superluminar GmbH**.
-
-If you need help integrating budget governance, automation, or AWS Organizations tooling into your enterprise setup, feel free to reach out.
+This project is maintained by **superluminar GmbH**.
+If you need help integrating automated budget governance or AWS Organizations tooling, feel free to contact us.
