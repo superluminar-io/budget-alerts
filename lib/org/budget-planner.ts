@@ -55,17 +55,19 @@ export function buildOuTree(ous: OuNode[]): OuTree {
 }
 
 export function validateBudgetConfig(config: BudgetConfig, knownOus: string[]) {
-  for (const [ouId, entry] of Object.entries(config.organizationalUnits)) {
-    if (!entry) {
-      throw new Error(`Budget config for OU ${ouId} is undefined`);
-    }
+  if (config.organizationalUnits) {
+    for (const [ouId, entry] of Object.entries(config.organizationalUnits)) {
+      if (!entry) {
+        throw new Error(`Budget config for OU ${ouId} is undefined`);
+      }
 
-    if (!knownOus.includes(ouId)) {
-      throw new Error(`Budget config refers to unknown OU: ${ouId}`);
-    }
+      if (!knownOus.includes(ouId)) {
+        throw new Error(`Budget config refers to unknown OU: ${ouId}`);
+      }
 
-    if (entry.amount !== null && entry.amount < 0) {
-      throw new Error(`OU ${ouId} has invalid budget amount: ${entry.amount}`);
+      if (entry.amount !== null && entry.amount < 0) {
+        throw new Error(`OU ${ouId} has invalid budget amount: ${entry.amount}`);
+      }
     }
   }
 }
@@ -93,6 +95,15 @@ export function computeEffectiveBudgets(
     const ou = tree.byId.get(ouId);
     if (!ou) {
       throw new Error(`Unknown OU id: ${ouId}`);
+    }
+    if (!config.organizationalUnits) {
+      // No per-OU config at all: use global default
+      const eb: EffectiveBudget = {
+        amount: config.default.amount,
+        currency: config.default.currency,
+      };
+      result.set(ouId, eb);
+      return eb;
     }
     const cfgEntry = config.organizationalUnits[ouId];
 

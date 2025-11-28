@@ -41,13 +41,11 @@ function isBudgetConfig(value: unknown): value is BudgetConfig {
   //
   // Step 4: Validate organizationalUnits exists and is an object
   //
-  if (!('organizationalUnits' in value)) {
-    return false;
-  }
-
-  const ous = (value as Record<string, unknown>).organizationalUnits;
-  if (typeof ous !== 'object' || ous === null) {
-    return false;
+  if ('organizationalUnits' in value) {
+    const ous = (value as Record<string, unknown>).organizationalUnits;
+    if (typeof ous !== 'object' && ous) {
+      return false;
+    }
   }
 
   // We intentionally do not validate entries here
