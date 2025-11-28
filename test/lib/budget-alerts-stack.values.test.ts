@@ -63,11 +63,6 @@ function isStackSetResource(v: unknown): v is StackSetResource {
   return isRecord(v) && v.Type === 'AWS::CloudFormation::StackSet' && isRecord(v.Properties);
 }
 
-function isTemplateUrl(v: unknown): v is StackSetTemplateUrl {
-  console.log(' Checking TemplateURL type:', JSON.stringify(v));
-  return isRecord(v) && typeof v.Key === 'string';
-}
-
 /**
  * Extract nested template file paths from a synthesized root template.
  */
@@ -90,7 +85,6 @@ function extractNestedTemplatePaths(
 
     const tplUrl = res.Properties?.TemplateURL;
     if (!tplUrl) continue;
-    console.log(' Found TemplateURL:', JSON.stringify(tplUrl));
 
     const assetHash = path.parse(tplUrl['Fn::Sub']).name;
     if (!assets.files?.[assetHash]?.source.path) {
@@ -99,7 +93,6 @@ function extractNestedTemplatePaths(
     const aPath = assets.files[assetHash].source.path;
     const asset = path.join(outDir, aPath);
     paths.push(asset);
-    console.log(' Found nested template path:', asset);
   }
 
   return paths;
@@ -140,14 +133,13 @@ function synthRootTemplate(orgOus: OuNode[], budgetConfig: BudgetConfig) {
     budgetConfig,
   });
 
-  console.log(stack.templateFile);
   const assetFileSplit = path.basename(stack.templateFile).split('.');
   assetFileSplit[1] = 'assets';
   const assetFilePath = path.join(app.outdir, assetFileSplit.join('.'));
 
   const assembly = app.synth();
   const outDir = assembly.directory;
-  console.log('Synthesized assembly at:', outDir);
+
   const rootTemplate = Template.fromStack(stack).toJSON() as TemplateJson;
 
   return { rootTemplate, outDir, assetFilePath };
