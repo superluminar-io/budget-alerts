@@ -21,8 +21,11 @@ const getMail = async (
   return account.Account.Email;
 };
 
-export const handler = async (event: OnEvent, ctx: unknown) => {
-  console.log('Event:', JSON.stringify(event, null, 2));
+export const handler = async (
+  event: OnEvent,
+  ctx: unknown,
+): Promise<{ PhysicalResourceId: string; Data: { Email?: string } }> => {
+  // eslint-disable-next-line no-console
   console.log('Context:', JSON.stringify(ctx, null, 2));
   if (event.RequestType === 'Delete') {
     return {

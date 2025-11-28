@@ -25,5 +25,5 @@ export interface BudgetConfig {
    * We use Partial so that accesses like config.organizationalUnits[ouId]
    * naturally have type OuBudgetConfigEntry | undefined.
    */
-  organizationalUnits: Partial<Record<string, OuBudgetConfigEntry>>;
+  organizationalUnits?: Partial<Record<string, OuBudgetConfigEntry>>;
 }
