@@ -43,13 +43,15 @@ function loadExistingConfig(path: string): BudgetConfig | null {
  * those are added later as YAML comments only.
  */
 function buildOrMergeConfig(ous: OuNode[], existing: BudgetConfig | null): BudgetConfig {
-  const config: BudgetConfig = existing ?? {
+  const config = existing ?? {
     default: {
       amount: 100,
       currency: 'USD',
     },
     organizationalUnits: {},
   };
+
+  config.organizationalUnits ??= {};
 
   for (const ou of ous) {
     if (!ou.id) continue;
@@ -76,6 +78,7 @@ function buildOrMergeConfig(ous: OuNode[], existing: BudgetConfig | null): Budge
  * but only if `prune` is true.
  */
 function pruneUnknownOus(config: BudgetConfig, knownOuIds: Set<string>, prune: boolean): void {
+  config.organizationalUnits ??= {};
   const allIds = Object.keys(config.organizationalUnits);
 
   const unknownIds = allIds.filter((id) => !knownOuIds.has(id));
