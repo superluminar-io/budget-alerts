@@ -1,0 +1,1568 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`BudgetAlertsStack Snapshot Tests (Normalized) matches snapshot for a single homogeneous subtree 1`] = `
+{
+  "Parameters": {
+    "BootstrapVersion": {
+      "Default": "/cdk-bootstrap/hnb659fds/version",
+      "Description": "Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]",
+      "Type": "AWS::SSM::Parameter::Value<String>",
+    },
+  },
+  "Resources": {
+    "AWS679f53fac002430cb0da5b7982bd22872D164C4C": {
+      "DependsOn": [
+        "AWS679f53fac002430cb0da5b7982bd2287ServiceRoleC1EA0FF2",
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "S3Key": "<asset-hash-stripped>",
+        },
+        "Handler": "index.handler",
+        "Role": {
+          "Fn::GetAtt": [
+            "AWS679f53fac002430cb0da5b7982bd2287ServiceRoleC1EA0FF2",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs22.x",
+        "Timeout": 120,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "AWS679f53fac002430cb0da5b7982bd2287ServiceRoleC1EA0FF2": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "AllowOrgCfnInvoke": {
+      "DependsOn": [
+        "DescribeAccountEmailProviderframeworkonEventFC321730",
+        "DescribeAccountEmailProviderframeworkonEventServiceRoleDefaultPolicy6DD1D2E4",
+        "DescribeAccountEmailProviderframeworkonEventServiceRoleC75754E0",
+      ],
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": "DescribeAccountEmailProviderFn",
+        "Principal": "*",
+        "PrincipalOrgID": {
+          "Fn::GetAtt": [
+            "GetOrgId54A03B77",
+            "Organization.Id",
+          ],
+        },
+      },
+      "Type": "AWS::Lambda::Permission",
+    },
+    "Assets9A31D427": {
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "BucketName": {
+          "Fn::Join": [
+            "",
+            [
+              "budget-alerts-stackset-assets-",
+              {
+                "Ref": "AWS::AccountId",
+              },
+              "-",
+              {
+                "Ref": "AWS::Region",
+              },
+            ],
+          ],
+        },
+      },
+      "Type": "AWS::S3::Bucket",
+      "UpdateReplacePolicy": "Retain",
+    },
+    "AssetsPolicy206C37E3": {
+      "Properties": {
+        "Bucket": {
+          "Ref": "Assets9A31D427",
+        },
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "s3:Get*",
+                "s3:List*",
+              ],
+              "Condition": {
+                "StringEquals": {
+                  "aws:PrincipalOrgID": {
+                    "Fn::GetAtt": [
+                      "GetOrgId54A03B77",
+                      "Organization.Id",
+                    ],
+                  },
+                },
+              },
+              "Effect": "Allow",
+              "Principal": {
+                "AWS": "*",
+              },
+              "Resource": [
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      {
+                        "Fn::GetAtt": [
+                          "Assets9A31D427",
+                          "Arn",
+                        ],
+                      },
+                      "/*",
+                    ],
+                  ],
+                },
+                {
+                  "Fn::GetAtt": [
+                    "Assets9A31D427",
+                    "Arn",
+                  ],
+                },
+              ],
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+      },
+      "Type": "AWS::S3::BucketPolicy",
+    },
+    "BudgetAlertStackSetprodAE04CB2E": {
+      "DependsOn": [
+        "AllowOrgCfnInvoke",
+        "AssetsPolicy206C37E3",
+        "Assets9A31D427",
+      ],
+      "Properties": {
+        "AutoDeployment": {
+          "Enabled": true,
+          "RetainStacksOnAccountRemoval": true,
+        },
+        "CallAs": "DELEGATED_ADMIN",
+        "Capabilities": [
+          "CAPABILITY_NAMED_IAM",
+        ],
+        "ManagedExecution": {
+          "Active": true,
+        },
+        "PermissionModel": "SERVICE_MANAGED",
+        "StackInstancesGroup": [
+          {
+            "DeploymentTargets": {
+              "AccountFilterType": "NONE",
+              "OrganizationalUnitIds": [
+                "prod",
+              ],
+            },
+            "Regions": [
+              {
+                "Ref": "AWS::Region",
+              },
+            ],
+          },
+        ],
+        "StackSetName": "SnapshotTestStackBudgetAlertStackSetprodD0A9C4EE",
+        "TemplateURL": {
+          "Fn::Sub": "https://s3.\${AWS::Region}.\${AWS::URLSuffix}/cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}/d5d9af3c4ef9a5a8beef0d08366c7112b25303eac2b677e1b4997ccdd1ff88c0.json",
+        },
+      },
+      "Type": "AWS::CloudFormation::StackSet",
+    },
+    "DescribeAccountEmailProviderframeworkonEventFC321730": {
+      "DependsOn": [
+        "DescribeAccountEmailProviderframeworkonEventServiceRoleDefaultPolicy6DD1D2E4",
+        "DescribeAccountEmailProviderframeworkonEventServiceRoleC75754E0",
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "S3Key": "<asset-hash-stripped>",
+        },
+        "Description": "AWS CDK resource provider framework - onEvent (SnapshotTestStack/DescribeAccountEmailProvider)",
+        "Environment": {
+          "Variables": {
+            "USER_ON_EVENT_FUNCTION_ARN": {
+              "Fn::GetAtt": [
+                "getmailA50FFCE5",
+                "Arn",
+              ],
+            },
+          },
+        },
+        "FunctionName": "DescribeAccountEmailProviderFn",
+        "Handler": "framework.onEvent",
+        "LoggingConfig": {
+          "ApplicationLogLevel": "FATAL",
+          "LogFormat": "JSON",
+        },
+        "Role": {
+          "Fn::GetAtt": [
+            "DescribeAccountEmailProviderframeworkonEventServiceRoleC75754E0",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs22.x",
+        "Timeout": 900,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "DescribeAccountEmailProviderframeworkonEventServiceRoleC75754E0": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "DescribeAccountEmailProviderframeworkonEventServiceRoleDefaultPolicy6DD1D2E4": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": "lambda:InvokeFunction",
+              "Effect": "Allow",
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
+                    "getmailA50FFCE5",
+                    "Arn",
+                  ],
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      {
+                        "Fn::GetAtt": [
+                          "getmailA50FFCE5",
+                          "Arn",
+                        ],
+                      },
+                      ":*",
+                    ],
+                  ],
+                },
+              ],
+            },
+            {
+              "Action": "lambda:GetFunction",
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::GetAtt": [
+                  "getmailA50FFCE5",
+                  "Arn",
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "DescribeAccountEmailProviderframeworkonEventServiceRoleDefaultPolicy6DD1D2E4",
+        "Roles": [
+          {
+            "Ref": "DescribeAccountEmailProviderframeworkonEventServiceRoleC75754E0",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "GetOrgId54A03B77": {
+      "DeletionPolicy": "Delete",
+      "DependsOn": [
+        "GetOrgIdCustomResourcePolicyE993701D",
+      ],
+      "Properties": {
+        "Create": "{"service":"Organizations","action":"describeOrganization","physicalResourceId":{"id":"Id"},"parameters":{}}",
+        "InstallLatestAwsSdk": true,
+        "ServiceToken": {
+          "Fn::GetAtt": [
+            "AWS679f53fac002430cb0da5b7982bd22872D164C4C",
+            "Arn",
+          ],
+        },
+        "Update": "{"service":"Organizations","action":"describeOrganization","physicalResourceId":{"id":"Id"},"parameters":{}}",
+      },
+      "Type": "Custom::AWS",
+      "UpdateReplacePolicy": "Delete",
+    },
+    "GetOrgIdCustomResourcePolicyE993701D": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": "organizations:DescribeOrganization",
+              "Effect": "Allow",
+              "Resource": "*",
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "GetOrgIdCustomResourcePolicyE993701D",
+        "Roles": [
+          {
+            "Ref": "AWS679f53fac002430cb0da5b7982bd2287ServiceRoleC1EA0FF2",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "getmailA50FFCE5": {
+      "DependsOn": [
+        "getmailServiceRoleDefaultPolicyD2623720",
+        "getmailServiceRole31C9EC3E",
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "S3Key": "<asset-hash-stripped>",
+        },
+        "Environment": {
+          "Variables": {
+            "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1",
+          },
+        },
+        "FunctionName": "DescribeAccountEmailFn",
+        "Handler": "index.handler",
+        "Role": {
+          "Fn::GetAtt": [
+            "getmailServiceRole31C9EC3E",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs16.x",
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "getmailInvoke15F33BD3": {
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "getmailA50FFCE5",
+            "Arn",
+          ],
+        },
+        "Principal": "*",
+        "PrincipalOrgID": {
+          "Fn::GetAtt": [
+            "GetOrgId54A03B77",
+            "Organization.Id",
+          ],
+        },
+      },
+      "Type": "AWS::Lambda::Permission",
+    },
+    "getmailServiceRole31C9EC3E": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "getmailServiceRoleDefaultPolicyD2623720": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": "organizations:DescribeAccount",
+              "Effect": "Allow",
+              "Resource": "*",
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "getmailServiceRoleDefaultPolicyD2623720",
+        "Roles": [
+          {
+            "Ref": "getmailServiceRole31C9EC3E",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+  },
+  "Rules": {
+    "CheckBootstrapVersion": {
+      "Assertions": [
+        {
+          "Assert": {
+            "Fn::Not": [
+              {
+                "Fn::Contains": [
+                  [
+                    "1",
+                    "2",
+                    "3",
+                    "4",
+                    "5",
+                  ],
+                  {
+                    "Ref": "BootstrapVersion",
+                  },
+                ],
+              },
+            ],
+          },
+          "AssertDescription": "CDK bootstrap stack version 6 required. Please run 'cdk bootstrap' with a recent version of the CDK CLI.",
+        },
+      ],
+    },
+  },
+}
+`;
+
+exports[`BudgetAlertsStack Snapshot Tests (Normalized) matches snapshot for overridden and inherited children 1`] = `
+{
+  "Parameters": {
+    "BootstrapVersion": {
+      "Default": "/cdk-bootstrap/hnb659fds/version",
+      "Description": "Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]",
+      "Type": "AWS::SSM::Parameter::Value<String>",
+    },
+  },
+  "Resources": {
+    "AWS679f53fac002430cb0da5b7982bd22872D164C4C": {
+      "DependsOn": [
+        "AWS679f53fac002430cb0da5b7982bd2287ServiceRoleC1EA0FF2",
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "S3Key": "<asset-hash-stripped>",
+        },
+        "Handler": "index.handler",
+        "Role": {
+          "Fn::GetAtt": [
+            "AWS679f53fac002430cb0da5b7982bd2287ServiceRoleC1EA0FF2",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs22.x",
+        "Timeout": 120,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "AWS679f53fac002430cb0da5b7982bd2287ServiceRoleC1EA0FF2": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "AllowOrgCfnInvoke": {
+      "DependsOn": [
+        "DescribeAccountEmailProviderframeworkonEventFC321730",
+        "DescribeAccountEmailProviderframeworkonEventServiceRoleDefaultPolicy6DD1D2E4",
+        "DescribeAccountEmailProviderframeworkonEventServiceRoleC75754E0",
+      ],
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": "DescribeAccountEmailProviderFn",
+        "Principal": "*",
+        "PrincipalOrgID": {
+          "Fn::GetAtt": [
+            "GetOrgId54A03B77",
+            "Organization.Id",
+          ],
+        },
+      },
+      "Type": "AWS::Lambda::Permission",
+    },
+    "Assets9A31D427": {
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "BucketName": {
+          "Fn::Join": [
+            "",
+            [
+              "budget-alerts-stackset-assets-",
+              {
+                "Ref": "AWS::AccountId",
+              },
+              "-",
+              {
+                "Ref": "AWS::Region",
+              },
+            ],
+          ],
+        },
+      },
+      "Type": "AWS::S3::Bucket",
+      "UpdateReplacePolicy": "Retain",
+    },
+    "AssetsPolicy206C37E3": {
+      "Properties": {
+        "Bucket": {
+          "Ref": "Assets9A31D427",
+        },
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "s3:Get*",
+                "s3:List*",
+              ],
+              "Condition": {
+                "StringEquals": {
+                  "aws:PrincipalOrgID": {
+                    "Fn::GetAtt": [
+                      "GetOrgId54A03B77",
+                      "Organization.Id",
+                    ],
+                  },
+                },
+              },
+              "Effect": "Allow",
+              "Principal": {
+                "AWS": "*",
+              },
+              "Resource": [
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      {
+                        "Fn::GetAtt": [
+                          "Assets9A31D427",
+                          "Arn",
+                        ],
+                      },
+                      "/*",
+                    ],
+                  ],
+                },
+                {
+                  "Fn::GetAtt": [
+                    "Assets9A31D427",
+                    "Arn",
+                  ],
+                },
+              ],
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+      },
+      "Type": "AWS::S3::BucketPolicy",
+    },
+    "BudgetAlertStackSetaccountingCA4EC3FB": {
+      "DependsOn": [
+        "AllowOrgCfnInvoke",
+        "AssetsPolicy206C37E3",
+        "Assets9A31D427",
+      ],
+      "Properties": {
+        "AutoDeployment": {
+          "Enabled": true,
+          "RetainStacksOnAccountRemoval": true,
+        },
+        "CallAs": "DELEGATED_ADMIN",
+        "Capabilities": [
+          "CAPABILITY_NAMED_IAM",
+        ],
+        "ManagedExecution": {
+          "Active": true,
+        },
+        "PermissionModel": "SERVICE_MANAGED",
+        "StackInstancesGroup": [
+          {
+            "DeploymentTargets": {
+              "AccountFilterType": "NONE",
+              "OrganizationalUnitIds": [
+                "accounting",
+              ],
+            },
+            "Regions": [
+              {
+                "Ref": "AWS::Region",
+              },
+            ],
+          },
+        ],
+        "StackSetName": "SnapshotTestStackBudgetAlertStackSetaccounting0AA9FC10",
+        "TemplateURL": {
+          "Fn::Sub": "https://s3.\${AWS::Region}.\${AWS::URLSuffix}/cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}/05b8af94c10976fef529c29d1f7408ecc8731f5f0b6f1aaf9a28350fa143e993.json",
+        },
+      },
+      "Type": "AWS::CloudFormation::StackSet",
+    },
+    "BudgetAlertStackSetpayrollD45B5BFA": {
+      "DependsOn": [
+        "AllowOrgCfnInvoke",
+        "AssetsPolicy206C37E3",
+        "Assets9A31D427",
+      ],
+      "Properties": {
+        "AutoDeployment": {
+          "Enabled": true,
+          "RetainStacksOnAccountRemoval": true,
+        },
+        "CallAs": "DELEGATED_ADMIN",
+        "Capabilities": [
+          "CAPABILITY_NAMED_IAM",
+        ],
+        "ManagedExecution": {
+          "Active": true,
+        },
+        "PermissionModel": "SERVICE_MANAGED",
+        "StackInstancesGroup": [
+          {
+            "DeploymentTargets": {
+              "AccountFilterType": "NONE",
+              "OrganizationalUnitIds": [
+                "payroll",
+              ],
+            },
+            "Regions": [
+              {
+                "Ref": "AWS::Region",
+              },
+            ],
+          },
+        ],
+        "StackSetName": "SnapshotTestStackBudgetAlertStackSetpayroll0ECEEDFC",
+        "TemplateURL": {
+          "Fn::Sub": "https://s3.\${AWS::Region}.\${AWS::URLSuffix}/cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}/75a630bcea5f0592631b444ac6bb1e8b533d67f485c460371ac8b81d581a18f2.json",
+        },
+      },
+      "Type": "AWS::CloudFormation::StackSet",
+    },
+    "DescribeAccountEmailProviderframeworkonEventFC321730": {
+      "DependsOn": [
+        "DescribeAccountEmailProviderframeworkonEventServiceRoleDefaultPolicy6DD1D2E4",
+        "DescribeAccountEmailProviderframeworkonEventServiceRoleC75754E0",
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "S3Key": "<asset-hash-stripped>",
+        },
+        "Description": "AWS CDK resource provider framework - onEvent (SnapshotTestStack/DescribeAccountEmailProvider)",
+        "Environment": {
+          "Variables": {
+            "USER_ON_EVENT_FUNCTION_ARN": {
+              "Fn::GetAtt": [
+                "getmailA50FFCE5",
+                "Arn",
+              ],
+            },
+          },
+        },
+        "FunctionName": "DescribeAccountEmailProviderFn",
+        "Handler": "framework.onEvent",
+        "LoggingConfig": {
+          "ApplicationLogLevel": "FATAL",
+          "LogFormat": "JSON",
+        },
+        "Role": {
+          "Fn::GetAtt": [
+            "DescribeAccountEmailProviderframeworkonEventServiceRoleC75754E0",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs22.x",
+        "Timeout": 900,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "DescribeAccountEmailProviderframeworkonEventServiceRoleC75754E0": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "DescribeAccountEmailProviderframeworkonEventServiceRoleDefaultPolicy6DD1D2E4": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": "lambda:InvokeFunction",
+              "Effect": "Allow",
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
+                    "getmailA50FFCE5",
+                    "Arn",
+                  ],
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      {
+                        "Fn::GetAtt": [
+                          "getmailA50FFCE5",
+                          "Arn",
+                        ],
+                      },
+                      ":*",
+                    ],
+                  ],
+                },
+              ],
+            },
+            {
+              "Action": "lambda:GetFunction",
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::GetAtt": [
+                  "getmailA50FFCE5",
+                  "Arn",
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "DescribeAccountEmailProviderframeworkonEventServiceRoleDefaultPolicy6DD1D2E4",
+        "Roles": [
+          {
+            "Ref": "DescribeAccountEmailProviderframeworkonEventServiceRoleC75754E0",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "GetOrgId54A03B77": {
+      "DeletionPolicy": "Delete",
+      "DependsOn": [
+        "GetOrgIdCustomResourcePolicyE993701D",
+      ],
+      "Properties": {
+        "Create": "{"service":"Organizations","action":"describeOrganization","physicalResourceId":{"id":"Id"},"parameters":{}}",
+        "InstallLatestAwsSdk": true,
+        "ServiceToken": {
+          "Fn::GetAtt": [
+            "AWS679f53fac002430cb0da5b7982bd22872D164C4C",
+            "Arn",
+          ],
+        },
+        "Update": "{"service":"Organizations","action":"describeOrganization","physicalResourceId":{"id":"Id"},"parameters":{}}",
+      },
+      "Type": "Custom::AWS",
+      "UpdateReplacePolicy": "Delete",
+    },
+    "GetOrgIdCustomResourcePolicyE993701D": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": "organizations:DescribeOrganization",
+              "Effect": "Allow",
+              "Resource": "*",
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "GetOrgIdCustomResourcePolicyE993701D",
+        "Roles": [
+          {
+            "Ref": "AWS679f53fac002430cb0da5b7982bd2287ServiceRoleC1EA0FF2",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "getmailA50FFCE5": {
+      "DependsOn": [
+        "getmailServiceRoleDefaultPolicyD2623720",
+        "getmailServiceRole31C9EC3E",
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "S3Key": "<asset-hash-stripped>",
+        },
+        "Environment": {
+          "Variables": {
+            "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1",
+          },
+        },
+        "FunctionName": "DescribeAccountEmailFn",
+        "Handler": "index.handler",
+        "Role": {
+          "Fn::GetAtt": [
+            "getmailServiceRole31C9EC3E",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs16.x",
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "getmailInvoke15F33BD3": {
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "getmailA50FFCE5",
+            "Arn",
+          ],
+        },
+        "Principal": "*",
+        "PrincipalOrgID": {
+          "Fn::GetAtt": [
+            "GetOrgId54A03B77",
+            "Organization.Id",
+          ],
+        },
+      },
+      "Type": "AWS::Lambda::Permission",
+    },
+    "getmailServiceRole31C9EC3E": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "getmailServiceRoleDefaultPolicyD2623720": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": "organizations:DescribeAccount",
+              "Effect": "Allow",
+              "Resource": "*",
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "getmailServiceRoleDefaultPolicyD2623720",
+        "Roles": [
+          {
+            "Ref": "getmailServiceRole31C9EC3E",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+  },
+  "Rules": {
+    "CheckBootstrapVersion": {
+      "Assertions": [
+        {
+          "Assert": {
+            "Fn::Not": [
+              {
+                "Fn::Contains": [
+                  [
+                    "1",
+                    "2",
+                    "3",
+                    "4",
+                    "5",
+                  ],
+                  {
+                    "Ref": "BootstrapVersion",
+                  },
+                ],
+              },
+            ],
+          },
+          "AssertDescription": "CDK bootstrap stack version 6 required. Please run 'cdk bootstrap' with a recent version of the CDK CLI.",
+        },
+      ],
+    },
+  },
+}
+`;
+
+exports[`BudgetAlertsStack Snapshot Tests (Normalized) matches snapshot for sibling leaf OUs with different budgets 1`] = `
+{
+  "Parameters": {
+    "BootstrapVersion": {
+      "Default": "/cdk-bootstrap/hnb659fds/version",
+      "Description": "Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]",
+      "Type": "AWS::SSM::Parameter::Value<String>",
+    },
+  },
+  "Resources": {
+    "AWS679f53fac002430cb0da5b7982bd22872D164C4C": {
+      "DependsOn": [
+        "AWS679f53fac002430cb0da5b7982bd2287ServiceRoleC1EA0FF2",
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "S3Key": "<asset-hash-stripped>",
+        },
+        "Handler": "index.handler",
+        "Role": {
+          "Fn::GetAtt": [
+            "AWS679f53fac002430cb0da5b7982bd2287ServiceRoleC1EA0FF2",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs22.x",
+        "Timeout": 120,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "AWS679f53fac002430cb0da5b7982bd2287ServiceRoleC1EA0FF2": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "AllowOrgCfnInvoke": {
+      "DependsOn": [
+        "DescribeAccountEmailProviderframeworkonEventFC321730",
+        "DescribeAccountEmailProviderframeworkonEventServiceRoleDefaultPolicy6DD1D2E4",
+        "DescribeAccountEmailProviderframeworkonEventServiceRoleC75754E0",
+      ],
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": "DescribeAccountEmailProviderFn",
+        "Principal": "*",
+        "PrincipalOrgID": {
+          "Fn::GetAtt": [
+            "GetOrgId54A03B77",
+            "Organization.Id",
+          ],
+        },
+      },
+      "Type": "AWS::Lambda::Permission",
+    },
+    "Assets9A31D427": {
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "BucketName": {
+          "Fn::Join": [
+            "",
+            [
+              "budget-alerts-stackset-assets-",
+              {
+                "Ref": "AWS::AccountId",
+              },
+              "-",
+              {
+                "Ref": "AWS::Region",
+              },
+            ],
+          ],
+        },
+      },
+      "Type": "AWS::S3::Bucket",
+      "UpdateReplacePolicy": "Retain",
+    },
+    "AssetsPolicy206C37E3": {
+      "Properties": {
+        "Bucket": {
+          "Ref": "Assets9A31D427",
+        },
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "s3:Get*",
+                "s3:List*",
+              ],
+              "Condition": {
+                "StringEquals": {
+                  "aws:PrincipalOrgID": {
+                    "Fn::GetAtt": [
+                      "GetOrgId54A03B77",
+                      "Organization.Id",
+                    ],
+                  },
+                },
+              },
+              "Effect": "Allow",
+              "Principal": {
+                "AWS": "*",
+              },
+              "Resource": [
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      {
+                        "Fn::GetAtt": [
+                          "Assets9A31D427",
+                          "Arn",
+                        ],
+                      },
+                      "/*",
+                    ],
+                  ],
+                },
+                {
+                  "Fn::GetAtt": [
+                    "Assets9A31D427",
+                    "Arn",
+                  ],
+                },
+              ],
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+      },
+      "Type": "AWS::S3::BucketPolicy",
+    },
+    "BudgetAlertStackSetdevF105CA42": {
+      "DependsOn": [
+        "AllowOrgCfnInvoke",
+        "AssetsPolicy206C37E3",
+        "Assets9A31D427",
+      ],
+      "Properties": {
+        "AutoDeployment": {
+          "Enabled": true,
+          "RetainStacksOnAccountRemoval": true,
+        },
+        "CallAs": "DELEGATED_ADMIN",
+        "Capabilities": [
+          "CAPABILITY_NAMED_IAM",
+        ],
+        "ManagedExecution": {
+          "Active": true,
+        },
+        "PermissionModel": "SERVICE_MANAGED",
+        "StackInstancesGroup": [
+          {
+            "DeploymentTargets": {
+              "AccountFilterType": "NONE",
+              "OrganizationalUnitIds": [
+                "dev",
+              ],
+            },
+            "Regions": [
+              {
+                "Ref": "AWS::Region",
+              },
+            ],
+          },
+        ],
+        "StackSetName": "SnapshotTestStackBudgetAlertStackSetdev4313E270",
+        "TemplateURL": {
+          "Fn::Sub": "https://s3.\${AWS::Region}.\${AWS::URLSuffix}/cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}/05b8af94c10976fef529c29d1f7408ecc8731f5f0b6f1aaf9a28350fa143e993.json",
+        },
+      },
+      "Type": "AWS::CloudFormation::StackSet",
+    },
+    "BudgetAlertStackSetprodAE04CB2E": {
+      "DependsOn": [
+        "AllowOrgCfnInvoke",
+        "AssetsPolicy206C37E3",
+        "Assets9A31D427",
+      ],
+      "Properties": {
+        "AutoDeployment": {
+          "Enabled": true,
+          "RetainStacksOnAccountRemoval": true,
+        },
+        "CallAs": "DELEGATED_ADMIN",
+        "Capabilities": [
+          "CAPABILITY_NAMED_IAM",
+        ],
+        "ManagedExecution": {
+          "Active": true,
+        },
+        "PermissionModel": "SERVICE_MANAGED",
+        "StackInstancesGroup": [
+          {
+            "DeploymentTargets": {
+              "AccountFilterType": "NONE",
+              "OrganizationalUnitIds": [
+                "prod",
+              ],
+            },
+            "Regions": [
+              {
+                "Ref": "AWS::Region",
+              },
+            ],
+          },
+        ],
+        "StackSetName": "SnapshotTestStackBudgetAlertStackSetprodD0A9C4EE",
+        "TemplateURL": {
+          "Fn::Sub": "https://s3.\${AWS::Region}.\${AWS::URLSuffix}/cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}/d5d9af3c4ef9a5a8beef0d08366c7112b25303eac2b677e1b4997ccdd1ff88c0.json",
+        },
+      },
+      "Type": "AWS::CloudFormation::StackSet",
+    },
+    "DescribeAccountEmailProviderframeworkonEventFC321730": {
+      "DependsOn": [
+        "DescribeAccountEmailProviderframeworkonEventServiceRoleDefaultPolicy6DD1D2E4",
+        "DescribeAccountEmailProviderframeworkonEventServiceRoleC75754E0",
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "S3Key": "<asset-hash-stripped>",
+        },
+        "Description": "AWS CDK resource provider framework - onEvent (SnapshotTestStack/DescribeAccountEmailProvider)",
+        "Environment": {
+          "Variables": {
+            "USER_ON_EVENT_FUNCTION_ARN": {
+              "Fn::GetAtt": [
+                "getmailA50FFCE5",
+                "Arn",
+              ],
+            },
+          },
+        },
+        "FunctionName": "DescribeAccountEmailProviderFn",
+        "Handler": "framework.onEvent",
+        "LoggingConfig": {
+          "ApplicationLogLevel": "FATAL",
+          "LogFormat": "JSON",
+        },
+        "Role": {
+          "Fn::GetAtt": [
+            "DescribeAccountEmailProviderframeworkonEventServiceRoleC75754E0",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs22.x",
+        "Timeout": 900,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "DescribeAccountEmailProviderframeworkonEventServiceRoleC75754E0": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "DescribeAccountEmailProviderframeworkonEventServiceRoleDefaultPolicy6DD1D2E4": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": "lambda:InvokeFunction",
+              "Effect": "Allow",
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
+                    "getmailA50FFCE5",
+                    "Arn",
+                  ],
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      {
+                        "Fn::GetAtt": [
+                          "getmailA50FFCE5",
+                          "Arn",
+                        ],
+                      },
+                      ":*",
+                    ],
+                  ],
+                },
+              ],
+            },
+            {
+              "Action": "lambda:GetFunction",
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::GetAtt": [
+                  "getmailA50FFCE5",
+                  "Arn",
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "DescribeAccountEmailProviderframeworkonEventServiceRoleDefaultPolicy6DD1D2E4",
+        "Roles": [
+          {
+            "Ref": "DescribeAccountEmailProviderframeworkonEventServiceRoleC75754E0",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "GetOrgId54A03B77": {
+      "DeletionPolicy": "Delete",
+      "DependsOn": [
+        "GetOrgIdCustomResourcePolicyE993701D",
+      ],
+      "Properties": {
+        "Create": "{"service":"Organizations","action":"describeOrganization","physicalResourceId":{"id":"Id"},"parameters":{}}",
+        "InstallLatestAwsSdk": true,
+        "ServiceToken": {
+          "Fn::GetAtt": [
+            "AWS679f53fac002430cb0da5b7982bd22872D164C4C",
+            "Arn",
+          ],
+        },
+        "Update": "{"service":"Organizations","action":"describeOrganization","physicalResourceId":{"id":"Id"},"parameters":{}}",
+      },
+      "Type": "Custom::AWS",
+      "UpdateReplacePolicy": "Delete",
+    },
+    "GetOrgIdCustomResourcePolicyE993701D": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": "organizations:DescribeOrganization",
+              "Effect": "Allow",
+              "Resource": "*",
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "GetOrgIdCustomResourcePolicyE993701D",
+        "Roles": [
+          {
+            "Ref": "AWS679f53fac002430cb0da5b7982bd2287ServiceRoleC1EA0FF2",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "getmailA50FFCE5": {
+      "DependsOn": [
+        "getmailServiceRoleDefaultPolicyD2623720",
+        "getmailServiceRole31C9EC3E",
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "S3Key": "<asset-hash-stripped>",
+        },
+        "Environment": {
+          "Variables": {
+            "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1",
+          },
+        },
+        "FunctionName": "DescribeAccountEmailFn",
+        "Handler": "index.handler",
+        "Role": {
+          "Fn::GetAtt": [
+            "getmailServiceRole31C9EC3E",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs16.x",
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "getmailInvoke15F33BD3": {
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "getmailA50FFCE5",
+            "Arn",
+          ],
+        },
+        "Principal": "*",
+        "PrincipalOrgID": {
+          "Fn::GetAtt": [
+            "GetOrgId54A03B77",
+            "Organization.Id",
+          ],
+        },
+      },
+      "Type": "AWS::Lambda::Permission",
+    },
+    "getmailServiceRole31C9EC3E": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "getmailServiceRoleDefaultPolicyD2623720": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": "organizations:DescribeAccount",
+              "Effect": "Allow",
+              "Resource": "*",
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "getmailServiceRoleDefaultPolicyD2623720",
+        "Roles": [
+          {
+            "Ref": "getmailServiceRole31C9EC3E",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+  },
+  "Rules": {
+    "CheckBootstrapVersion": {
+      "Assertions": [
+        {
+          "Assert": {
+            "Fn::Not": [
+              {
+                "Fn::Contains": [
+                  [
+                    "1",
+                    "2",
+                    "3",
+                    "4",
+                    "5",
+                  ],
+                  {
+                    "Ref": "BootstrapVersion",
+                  },
+                ],
+              },
+            ],
+          },
+          "AssertDescription": "CDK bootstrap stack version 6 required. Please run 'cdk bootstrap' with a recent version of the CDK CLI.",
+        },
+      ],
+    },
+  },
+}
+`;

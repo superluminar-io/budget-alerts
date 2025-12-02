@@ -40,6 +40,7 @@ async function main() {
 }
 
 main().catch((err: unknown) => {
+  // eslint-disable-next-line no-console
   console.error('Error during cdk app initialization:', err);
   process.exit(1);
 });

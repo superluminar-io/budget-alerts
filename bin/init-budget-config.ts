@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
@@ -9,6 +10,9 @@ import { resolve } from 'path';
 import YAML, { parse as yamlParse } from 'yaml';
 import type { BudgetConfig, OuBudgetConfigEntry } from '../lib/org/budget-config';
 import { loadOrgStructure, type OrgRoot, type OuNode } from '../lib/org/org-discovery';
+import log from 'loglevel';
+
+log.setLevel(log.levels.INFO);
 
 /**
  * Build a lookup map for OU metadata by ID, to use when adding comments.
@@ -42,13 +46,15 @@ function loadExistingConfig(path: string): BudgetConfig | null {
  * those are added later as YAML comments only.
  */
 function buildOrMergeConfig(ous: OuNode[], existing: BudgetConfig | null): BudgetConfig {
-  const config: BudgetConfig = existing ?? {
+  const config = existing ?? {
     default: {
       amount: 100,
       currency: 'USD',
     },
     organizationalUnits: {},
   };
+
+  config.organizationalUnits ??= {};
 
   for (const ou of ous) {
     if (!ou.id) continue;
@@ -75,6 +81,7 @@ function buildOrMergeConfig(ous: OuNode[], existing: BudgetConfig | null): Budge
  * but only if `prune` is true.
  */
 function pruneUnknownOus(config: BudgetConfig, knownOuIds: Set<string>, prune: boolean): void {
+  config.organizationalUnits ??= {};
   const allIds = Object.keys(config.organizationalUnits);
 
   const unknownIds = allIds.filter((id) => !knownOuIds.has(id));
@@ -84,12 +91,12 @@ function pruneUnknownOus(config: BudgetConfig, knownOuIds: Set<string>, prune: b
   }
 
   if (!prune) {
-    console.error(
+    log.error(
       `Config contains ${unknownIds.length.toString()} OU id(s) ` +
         `that are no longer in the organization: ${unknownIds.join(', ')}`,
     );
 
-    console.error(
+    log.error(
       'Run this script again with "--prune" to remove them automatically, ' +
         'or edit budget-config.yaml manually.',
     );
@@ -101,7 +108,7 @@ function pruneUnknownOus(config: BudgetConfig, knownOuIds: Set<string>, prune: b
     delete config.organizationalUnits[id];
   }
 
-  console.error(
+  log.error(
     `Pruned ${unknownIds.length.toString()} OU id(s) from config: ${unknownIds.join(', ')}`,
   );
 }
@@ -161,14 +168,14 @@ function addOuCommentsToDocument(
 async function main() {
   const args = process.argv.slice(2);
   const prune = args.includes('--prune');
-  console.log('Initializing budget config...');
+  log.info('Initializing budget config...');
   const configPath = resolve('budget-config.yaml');
 
-  console.error(`Using config path: ${configPath}`);
+  log.error(`Using config path: ${configPath}`);
 
-  console.error('Querying AWS Organizations for OUs...');
+  log.error('Querying AWS Organizations for OUs...');
   const { root, ous } = await loadOrgStructure();
-  console.error(`Found ${ous.length} OUs under root ${root.name} (${root.id}).`);
+  log.error(`Found ${ous.length} OUs under root ${root.name} (${root.id}).`);
 
   const existing = loadExistingConfig(configPath);
 
@@ -185,7 +192,7 @@ async function main() {
 
   const yamlText = String(doc);
   writeFileSync(configPath, yamlText, 'utf8');
-  console.error(`Written budget config to ${configPath}`);
+  log.error(`Written budget config to ${configPath}`);
 
   const cdkJsonPath = resolve('cdk.json');
   writeFileSync(
@@ -202,10 +209,10 @@ async function main() {
     ),
     'utf8',
   );
-  console.error(`Written CDK app config to ${cdkJsonPath}`);
+  log.error(`Written CDK app config to ${cdkJsonPath}`);
 }
 
 main().catch((err: unknown) => {
-  console.error('Error during init-budget-config:', err);
+  log.error('Error during init-budget-config:', err);
   process.exit(1);
 });

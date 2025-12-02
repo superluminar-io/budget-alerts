@@ -54,6 +54,7 @@ export default [
           allowNumber: true,
         },
       ],
+      'no-console': ['error'],
     },
   },
   // Test files: provide Jest globals (plugin removed for ESLint v9 compatibility)

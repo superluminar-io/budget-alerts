@@ -21,7 +21,6 @@ import {
   StackSetTemplate,
 } from 'cdk-stacksets';
 import type { Construct } from 'constructs';
-import { loadBudgetConfig } from './org/budget-config-loader';
 import {
   computeOuBudgetAttachments,
   type OuBudgetAttachment,
@@ -39,8 +38,7 @@ export class BudgetAlertsStack extends Stack {
   constructor(scope: Construct, id: string, props: BudgetAlertsStackProps) {
     super(scope, id, props);
 
-    const config = loadBudgetConfig();
-    const attachments = computeOuBudgetAttachments(props.orgOus, config);
+    const attachments = computeOuBudgetAttachments(props.orgOus, props.budgetConfig);
 
     const getOrgId = new AwsCustomResource(this, 'GetOrgId', {
       onUpdate: {

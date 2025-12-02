@@ -1,4 +1,5 @@
 import { DescribeAccountCommand, OrganizationsClient } from '@aws-sdk/client-organizations';
+import log from 'loglevel';
 
 const org = new OrganizationsClient({});
 
@@ -21,9 +22,11 @@ const getMail = async (
   return account.Account.Email;
 };
 
-export const handler = async (event: OnEvent, ctx: unknown) => {
-  console.log('Event:', JSON.stringify(event, null, 2));
-  console.log('Context:', JSON.stringify(ctx, null, 2));
+export const handler = async (
+  event: OnEvent,
+  ctx: unknown,
+): Promise<{ PhysicalResourceId: string; Data: { Email?: string } }> => {
+  log.info('Context:', JSON.stringify(ctx, null, 2));
   if (event.RequestType === 'Delete') {
     return {
       PhysicalResourceId: event.PhysicalResourceId ?? 'DescribeAccountEmail',
