@@ -213,7 +213,9 @@ describe('BudgetAlertsStack – budget wiring in nested templates', () => {
       .sort((a, b) => {
         const amountA = a.Properties?.Budget?.BudgetLimit?.Amount ?? 0;
         const amountB = b.Properties?.Budget?.BudgetLimit?.Amount ?? 0;
-        return Number(amountA) - Number(amountB);
+        const numA = typeof amountA === 'string' ? parseFloat(amountA) : amountA;
+        const numB = typeof amountB === 'string' ? parseFloat(amountB) : amountB;
+        return numA - numB;
       });
 
     expect(budgets).toMatchObject([
