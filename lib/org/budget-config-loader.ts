@@ -43,7 +43,7 @@ function isBudgetConfig(value: unknown): value is BudgetConfig {
   //
   if ('organizationalUnits' in value) {
     const ous = (value as Record<string, unknown>).organizationalUnits;
-    if (typeof ous !== 'object' && ous) {
+    if (ous && typeof ous !== 'object') {
       return false;
     }
   }
