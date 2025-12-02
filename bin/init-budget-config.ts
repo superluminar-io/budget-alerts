@@ -202,6 +202,7 @@ async function main() {
         app: 'npx budget-alerts',
         context: {
           budgetConfigPath: 'budget-config.yaml',
+          '@aws-cdk/aws-lambda-nodejs:useLatestRuntimeVersion': true,
         },
       },
       null,
