@@ -16,7 +16,8 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "config": "ts-node --transpile-only bin/init-budget-config.ts",
-    "coverage": "jest --coverage"
+    "coverage": "jest --coverage",
+    "clean": "rm -rf dist .jest .tscache budget-alerts-*.tgz"
   },
   "files": [
     "dist/**/*.{js,d.ts}",
