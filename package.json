@@ -44,6 +44,7 @@
     "cdk-stacksets": "^0.0.152",
     "constructs": "^10.4.3",
     "esbuild": "^0.27.0",
+    "loglevel": "^1.9.2",
     "yaml": "^2.8.2"
   }
 }
