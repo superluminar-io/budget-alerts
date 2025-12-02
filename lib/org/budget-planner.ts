@@ -15,7 +15,7 @@ export interface OuBudgetAttachment {
 }
 
 export interface EffectiveBudget {
-  amount: number;
+  amount?: number;
   currency: string;
 }
 
@@ -228,11 +228,14 @@ export function selectOuBudgetAttachments(
 
     if (canCoverSubtree && !ancestorSelected) {
       const budget = effectiveBudgets.get(ouId)!;
-      attachments.push({
-        ouId,
-        amount: budget.amount,
-        currency: budget.currency,
-      });
+      const amount = budget.amount ?? 0;
+      if (amount > 0) {
+        attachments.push({
+          ouId,
+          amount: amount,
+          currency: budget.currency,
+        });
+      }
       return; // this OU covers its whole subtree
     }
 
