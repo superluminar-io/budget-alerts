@@ -16,7 +16,7 @@ export interface OuBudgetConfigEntry {
 
 export interface BudgetConfig {
   default: {
-    amount: number;
+    amount?: number;
     currency: string;
   };
 
@@ -27,3 +27,7 @@ export interface BudgetConfig {
    */
   organizationalUnits?: Partial<Record<string, OuBudgetConfigEntry>>;
 }
+
+export type NullableSome<T, K extends keyof T> = {
+  [P in keyof T]: P extends K ? T[P] | null | undefined : T[P];
+};
