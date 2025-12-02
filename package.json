@@ -25,7 +25,7 @@
   "devDependencies": {
     "@eslint/js": "^9.13.0",
     "@types/jest": "^30.0.0",
-    "@types/node": "^24.10.1",
+    "@types/node": "24.10.1",
     "aws-cdk": "2.1033.0",
     "eslint": "^9.39.1",
     "eslint-config-prettier": "^10.1.8",
@@ -38,9 +38,9 @@
   },
   "dependencies": {
     "@aws-sdk/client-controltower": "^3.940.0",
-    "@aws-sdk/client-organizations": "^3.940.0",
+    "@aws-sdk/client-organizations": "^3.939.0",
     "@aws-sdk/util-arn-parser": "^3.893.0",
-    "aws-cdk-lib": "^2.230.0",
+    "aws-cdk-lib": "2.231.0",
     "cdk-stacksets": "^0.0.152",
     "constructs": "^10.4.3",
     "esbuild": "^0.27.0",
