@@ -1,5 +1,3 @@
-// test/lib/budget-alerts-stack.get-mail.test.ts
-
 // We define sendMock here and inject it into the mocked OrganizationsClient.
 // This avoids poking at OrganizationsClient.mock.instances, which breaks when
 // the client is created at module load time and we call jest.clearAllMocks().
