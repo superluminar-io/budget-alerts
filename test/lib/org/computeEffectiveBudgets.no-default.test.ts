@@ -19,9 +19,9 @@ describe('computeEffectiveBudgets - no default', () => {
 
     const eff = computeEffectiveBudgets(tree, config);
 
-    expect(eff.get('r')).toBeUndefined();
-    expect(eff.get('ou-a')).toBeUndefined();
-    expect(eff.get('ou-b')).toBeUndefined();
+    expect(eff.get('r')?.amount).toBeUndefined();
+    expect(eff.get('ou-a')?.amount).toBeUndefined();
+    expect(eff.get('ou-b')?.amount).toBeUndefined();
   });
 
   test('no default + override sets budget => budget propagates to descendants', () => {
@@ -40,8 +40,8 @@ describe('computeEffectiveBudgets - no default', () => {
 
     const eff = computeEffectiveBudgets(tree, config);
 
-    expect(eff.get('r')).toBeUndefined();
-    expect(eff.get('ou-x')).toBeUndefined();
+    expect(eff.get('r')?.amount).toBeUndefined();
+    expect(eff.get('ou-x')?.amount).toBeUndefined();
 
     expect(eff.get('ou-a')).toEqual({ amount: 123, currency: 'EUR' });
     expect(eff.get('ou-b')).toEqual({ amount: 123, currency: 'EUR' });
@@ -61,8 +61,8 @@ describe('computeEffectiveBudgets - no default', () => {
 
     const eff = computeEffectiveBudgets(tree, config);
 
-    expect(eff.get('r')).toBeUndefined();
-    expect(eff.get('ou-a')).toBeUndefined();
+    expect(eff.get('r')?.amount).toBeUndefined();
+    expect(eff.get('ou-a')?.amount).toBeUndefined();
   });
 });
 
