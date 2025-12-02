@@ -60,10 +60,8 @@ describe('computeEffectiveBudgets', () => {
     const budgetConfig: BudgetConfig = {
       default: { amount: 1000, currency: 'USD' },
       organizationalUnits: {
-        A: { amount: null, currency: 'USD' },
         B: { amount: 100, currency: 'USD' }, // Inherit from A
         C: { amount: 500, currency: 'USD' },
-        D: { amount: null, currency: 'USD' }, // Inherit from B -> A
       },
     };
 

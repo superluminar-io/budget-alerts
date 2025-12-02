@@ -114,6 +114,13 @@ export function computeEffectiveBudgets(
       };
       result.set(ouId, eb);
       return eb;
+    } else {
+      if (cfgEntry?.amount === null) {
+        // Explicitly disabled budget
+        const eb: EffectiveBudget = { currency: 'USD' }; // currency is irrelevant here
+        result.set(ouId, eb);
+        return eb;
+      }
     }
 
     if (ou.parentId !== null) {
