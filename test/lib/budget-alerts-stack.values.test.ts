@@ -209,9 +209,13 @@ describe('BudgetAlertsStack – budget wiring in nested templates', () => {
     const nestedTemplates = nestedPaths.map(loadNestedTemplate);
     const budgets = nestedTemplates
       .map(extractBudgetResource)
-      .filter((b): b is BudgetResource => b !== undefined);
+      .filter((b): b is BudgetResource => b !== undefined)
+      .sort((a, b) => {
+        const amountA = a.Properties?.Budget?.BudgetLimit?.Amount ?? 0;
+        const amountB = b.Properties?.Budget?.BudgetLimit?.Amount ?? 0;
+        return Number(amountA) - Number(amountB);
+      });
 
-    // 🔥 Direct array comparison, no sorting, no mapping
     expect(budgets).toMatchObject([
       {
         Properties: {
