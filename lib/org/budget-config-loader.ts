@@ -20,7 +20,6 @@ function isNullableBudgetConfig(
     if (typeof def !== 'object' || def === null) {
       return false;
     }
-    console.log('validating default', JSON.stringify(value.default));
     //
     // Step 2: Validate default.amount
     //
@@ -28,8 +27,6 @@ function isNullableBudgetConfig(
     if (amount && typeof amount !== 'number') {
       return false;
     }
-
-    console.log('validating default.amount:', amount);
 
     //
     // Step 3: Validate default.currency
@@ -44,7 +41,6 @@ function isNullableBudgetConfig(
   // Step 4: Validate organizationalUnits exists and is an object
   //
   if ('organizationalUnits' in value) {
-    console.log('validating organizationalUnits');
     const ous = (value as Record<string, unknown>).organizationalUnits;
     if (ous && typeof ous !== 'object') {
       return false;
