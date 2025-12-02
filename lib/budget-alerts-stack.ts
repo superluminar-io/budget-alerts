@@ -80,6 +80,7 @@ export class BudgetAlertsStack extends Stack {
       functionName: providerName,
       principal: '*',
       principalOrgId: orgId,
+      sourceArn: `arn:${this.partition}:cloudformation:*:*:stack/*/*`,
     });
     permissions.node.addDependency(provider);
 
