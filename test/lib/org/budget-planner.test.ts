@@ -384,7 +384,6 @@ describe('computeOuBudgetAttachments', () => {
         A: { amount: null, currency: 'USD' },
         B: { amount: 100, currency: 'USD' },
         C: { amount: 500, currency: 'USD' },
-        D: { amount: null, currency: 'USD' },
       },
     };
 
