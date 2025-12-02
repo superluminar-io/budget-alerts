@@ -3,7 +3,7 @@
 import { existsSync, readFileSync } from 'fs';
 import { resolve } from 'path';
 import { parse as yamlParse } from 'yaml';
-import type { BudgetConfig, NullableSome } from './budget-config';
+import { DISABLED_CURRENCY, type BudgetConfig, type NullableSome } from './budget-config';
 
 function isNullableBudgetConfig(
   value: unknown,
@@ -70,7 +70,7 @@ function isBudgetConfig(value: unknown): value is BudgetConfig {
 export function sanitizeBudgetConfig(
   config: NullableSome<BudgetConfig, 'default' | 'organizationalUnits'>,
 ): BudgetConfig {
-  config.default ??= { currency: 'USD' };
+  config.default ??= { currency: DISABLED_CURRENCY };
   if (isBudgetConfig(config)) {
     return config;
   }

@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 // lib/org/budget-planner.ts
 
-import type { BudgetConfig } from './budget-config';
+import { DISABLED_CURRENCY, type BudgetConfig } from './budget-config';
 
 export interface OuNode {
   id: string;
@@ -117,7 +117,7 @@ export function computeEffectiveBudgets(
     } else {
       if (cfgEntry?.amount === null) {
         // Explicitly disabled budget
-        const eb: EffectiveBudget = { currency: 'USD' }; // currency is irrelevant here
+        const eb: EffectiveBudget = { currency: DISABLED_CURRENCY }; // currency is irrelevant here
         result.set(ouId, eb);
         return eb;
       }
@@ -235,11 +235,10 @@ export function selectOuBudgetAttachments(
 
     if (canCoverSubtree && !ancestorSelected) {
       const budget = effectiveBudgets.get(ouId)!;
-      const amount = budget.amount ?? 0;
-      if (amount > 0) {
+      if (budget.amount && budget.amount > 0) {
         attachments.push({
           ouId,
-          amount: amount,
+          amount: budget.amount,
           currency: budget.currency,
         });
       }
