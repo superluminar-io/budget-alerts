@@ -31,3 +31,5 @@ export interface BudgetConfig {
 export type NullableSome<T, K extends keyof T> = {
   [P in keyof T]: P extends K ? T[P] | null | undefined : T[P];
 };
+
+export const DISABLED_CURRENCY = 'NONE';
