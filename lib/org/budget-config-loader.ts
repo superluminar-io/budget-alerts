@@ -13,6 +13,13 @@ function isNullableBudgetConfig(
   }
 
   //
+  // Step 0: Ensure at least one of `organizationalUnits` or `default` exists
+  //
+  if (!('organizationalUnits' in value) && !('default' in value)) {
+    return false;
+  }
+
+  //
   // Step 1: Check `default` exists and is an object
   //
   if ('default' in value && value.default) {
@@ -45,10 +52,6 @@ function isNullableBudgetConfig(
     if (ous && typeof ous !== 'object') {
       return false;
     }
-  }
-
-  if (!('organizationalUnits' in value) && !('default' in value)) {
-    return false;
   }
 
   // We intentionally do not validate entries here
