@@ -80,6 +80,18 @@ exports[`BudgetAlertsStack Snapshot Tests (Normalized) matches snapshot for a si
             "Organization.Id",
           ],
         },
+        "SourceArn": {
+          "Fn::Join": [
+            "",
+            [
+              "arn:",
+              {
+                "Ref": "AWS::Partition",
+              },
+              ":cloudformation:*:*:stack/*/*",
+            ],
+          ],
+        },
       },
       "Type": "AWS::Lambda::Permission",
     },
@@ -573,6 +585,18 @@ exports[`BudgetAlertsStack Snapshot Tests (Normalized) matches snapshot for over
           "Fn::GetAtt": [
             "GetOrgId54A03B77",
             "Organization.Id",
+          ],
+        },
+        "SourceArn": {
+          "Fn::Join": [
+            "",
+            [
+              "arn:",
+              {
+                "Ref": "AWS::Partition",
+              },
+              ":cloudformation:*:*:stack/*/*",
+            ],
           ],
         },
       },
@@ -1109,6 +1133,18 @@ exports[`BudgetAlertsStack Snapshot Tests (Normalized) matches snapshot for sibl
           "Fn::GetAtt": [
             "GetOrgId54A03B77",
             "Organization.Id",
+          ],
+        },
+        "SourceArn": {
+          "Fn::Join": [
+            "",
+            [
+              "arn:",
+              {
+                "Ref": "AWS::Partition",
+              },
+              ":cloudformation:*:*:stack/*/*",
+            ],
           ],
         },
       },
