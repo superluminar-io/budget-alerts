@@ -3,9 +3,11 @@
 import { existsSync, readFileSync } from 'fs';
 import { resolve } from 'path';
 import { parse as yamlParse } from 'yaml';
-import type { BudgetConfig } from './budget-config';
+import type { BudgetConfig, NullableSome } from './budget-config';
 
-function isBudgetConfig(value: unknown): value is BudgetConfig {
+function isNullableBudgetConfig(
+  value: unknown,
+): value is NullableSome<BudgetConfig, 'organizationalUnits' | 'default'> {
   if (value === null || typeof value !== 'object') {
     return false;
   }
@@ -13,43 +15,70 @@ function isBudgetConfig(value: unknown): value is BudgetConfig {
   //
   // Step 1: Check `default` exists and is an object
   //
-  if (!('default' in value)) {
-    return false;
-  }
+  if ('default' in value && value.default) {
+    const def = (value as Record<string, unknown>).default;
+    if (typeof def !== 'object' || def === null) {
+      return false;
+    }
+    console.log('validating default', JSON.stringify(value.default));
+    //
+    // Step 2: Validate default.amount
+    //
+    const amount = (def as Record<string, unknown>).amount;
+    if (amount && typeof amount !== 'number') {
+      return false;
+    }
 
-  const def = (value as Record<string, unknown>).default;
-  if (typeof def !== 'object' || def === null) {
-    return false;
-  }
+    console.log('validating default.amount:', amount);
 
-  //
-  // Step 2: Validate default.amount
-  //
-  const amount = (def as Record<string, unknown>).amount;
-  if (typeof amount !== 'number') {
-    return false;
-  }
-
-  //
-  // Step 3: Validate default.currency
-  //
-  const currency = (def as Record<string, unknown>).currency;
-  if (typeof currency !== 'string') {
-    return false;
+    //
+    // Step 3: Validate default.currency
+    //
+    const currency = (def as Record<string, unknown>).currency;
+    if (typeof currency !== 'string') {
+      return false;
+    }
   }
 
   //
   // Step 4: Validate organizationalUnits exists and is an object
   //
   if ('organizationalUnits' in value) {
+    console.log('validating organizationalUnits');
     const ous = (value as Record<string, unknown>).organizationalUnits;
     if (ous && typeof ous !== 'object') {
       return false;
     }
   }
 
+  if (!('organizationalUnits' in value) && !('default' in value)) {
+    return false;
+  }
+
   // We intentionally do not validate entries here
   return true;
+}
+
+function isBudgetConfig(value: unknown): value is BudgetConfig {
+  if (!isNullableBudgetConfig(value)) {
+    return false;
+  }
+
+  if (value.default === null) {
+    return false;
+  }
+
+  return true;
+}
+
+export function sanitizeBudgetConfig(
+  config: NullableSome<BudgetConfig, 'default' | 'organizationalUnits'>,
+): BudgetConfig {
+  config.default ??= { currency: 'USD' };
+  if (isBudgetConfig(config)) {
+    return config;
+  }
+  throw new Error('Invalid budget config structure');
 }
 
 /**
@@ -76,12 +105,12 @@ export function loadBudgetConfig(configPath = 'budget-config.yaml'): BudgetConfi
     throw new Error(`Failed to parse budget config YAML at ${fullPath}: ${String(err)}`);
   }
 
-  if (!isBudgetConfig(parsed)) {
+  if (!isNullableBudgetConfig(parsed)) {
     throw new Error(
       `Invalid budget config structure in ${fullPath}. ` +
         `Check "default" and "organizationalUnits" blocks.`,
     );
   }
 
-  return parsed;
+  return sanitizeBudgetConfig(parsed);
 }
