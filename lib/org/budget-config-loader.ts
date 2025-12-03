@@ -3,7 +3,12 @@
 import { existsSync, readFileSync } from 'fs';
 import { resolve } from 'path';
 import { parse as yamlParse } from 'yaml';
-import { DISABLED_CURRENCY, type BudgetConfig, type NullableSome } from './budget-config';
+import {
+  DEFAULT_THRESHOLDS,
+  DISABLED_CURRENCY,
+  type BudgetConfig,
+  type NullableSome,
+} from './budget-config';
 
 function isNullableBudgetConfig(
   value: unknown,
@@ -16,6 +21,14 @@ function isNullableBudgetConfig(
   // Step 0: Ensure at least one of `organizationalUnits` or `default` exists
   //
   if (!('organizationalUnits' in value) && !('default' in value)) {
+    return false;
+  }
+
+  // return false if default and organizationalUnits are both null or undefined
+  if (
+    (!('default' in value) || !(value as Record<string, unknown>).default) &&
+    (!('organizationalUnits' in value) || !(value as Record<string, unknown>).organizationalUnits)
+  ) {
     return false;
   }
 
@@ -74,6 +87,21 @@ export function sanitizeBudgetConfig(
   config: NullableSome<BudgetConfig, 'default' | 'organizationalUnits'>,
 ): BudgetConfig {
   const sanitized = { ...config, default: config.default ?? { currency: DISABLED_CURRENCY } };
+  sanitized.default.thresholds ??= DEFAULT_THRESHOLDS;
+  // loop over organizationalUnits and fill in missing fields
+  if (sanitized.organizationalUnits) {
+    for (const [ouId, entry] of Object.entries(sanitized.organizationalUnits)) {
+      if (!entry) {
+        sanitized.organizationalUnits[ouId] = {
+          amount: null,
+          currency: undefined,
+          thresholds: undefined,
+        };
+        continue;
+      }
+      entry.thresholds ??= DEFAULT_THRESHOLDS;
+    }
+  }
   if (isBudgetConfig(sanitized)) {
     return sanitized;
   }

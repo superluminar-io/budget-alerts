@@ -1,4 +1,6 @@
-// lib/org/budget-config.ts
+export type Thresholds = readonly number[]; // e.g. [75, 100]
+
+export const DEFAULT_THRESHOLDS: Thresholds = [75, 100] as const;
 
 export interface OuBudgetConfigEntry {
   /**
@@ -9,15 +11,19 @@ export interface OuBudgetConfigEntry {
 
   /**
    * Optional currency override.
-   * Usually omitted; default currency from BudgetConfig.default is used.
    */
   currency?: string;
+
+  /** Optional thresholds override.
+   */
+  thresholds?: Thresholds;
 }
 
 export interface BudgetConfig {
   default: {
     amount?: number;
     currency: string;
+    thresholds?: Thresholds;
   };
 
   /**
