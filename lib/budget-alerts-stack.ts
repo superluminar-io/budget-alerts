@@ -98,25 +98,27 @@ export class BudgetAlertsStack extends Stack {
     );
 
     for (const attachment of attachments) {
-      const target = StackSetTarget.fromOrganizationalUnits({
-        organizationalUnits: [attachment.ouId],
-        regions: [this.region],
-      });
-      const alertStackSet = new StackSet(this, `BudgetAlertStackSet-${attachment.ouId}`, {
-        target,
-        template: StackSetTemplate.fromStackSetStack(
-          new BudgetAlert(this, `BudgetAlertTemplate-${attachment.ouId}`, {
-            assetBuckets: [assetBucket],
-            assetBucketPrefix: assetBucketPrefix,
-            delegatedAdminAccountId: Stack.of(this).account,
-            budget: attachment,
-          }),
-        ),
-        deploymentType: DeploymentType.serviceManaged(),
-        capabilities: [Capability.NAMED_IAM],
-      });
-      alertStackSet.node.addDependency(assetBucket);
-      alertStackSet.node.addDependency(permissions);
+      if (attachment.amount > 0) {
+        const target = StackSetTarget.fromOrganizationalUnits({
+          organizationalUnits: [attachment.ouId],
+          regions: [this.region],
+        });
+        const alertStackSet = new StackSet(this, `BudgetAlertStackSet-${attachment.ouId}`, {
+          target,
+          template: StackSetTemplate.fromStackSetStack(
+            new BudgetAlert(this, `BudgetAlertTemplate-${attachment.ouId}`, {
+              assetBuckets: [assetBucket],
+              assetBucketPrefix: assetBucketPrefix,
+              delegatedAdminAccountId: Stack.of(this).account,
+              budget: attachment,
+            }),
+          ),
+          deploymentType: DeploymentType.serviceManaged(),
+          capabilities: [Capability.NAMED_IAM],
+        });
+        alertStackSet.node.addDependency(assetBucket);
+        alertStackSet.node.addDependency(permissions);
+      }
     }
   }
 }

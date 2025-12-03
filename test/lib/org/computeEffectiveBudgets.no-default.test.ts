@@ -3,6 +3,7 @@ import {
   computeOuBudgetAttachments,
 } from '../../../lib/org/budget-planner';
 import { makeConfig, treeFrom } from '../../helpers/ouTree';
+import { DEFAULT_THRESHOLDS } from '../../../lib/org/budget-config';
 
 describe('computeEffectiveBudgets - no default', () => {
   test('no default + no overrides => all OUs undefined', () => {
@@ -43,8 +44,16 @@ describe('computeEffectiveBudgets - no default', () => {
     expect(eff.get('r')?.amount).toBeUndefined();
     expect(eff.get('ou-x')?.amount).toBeUndefined();
 
-    expect(eff.get('ou-a')).toEqual({ amount: 123, currency: 'EUR' });
-    expect(eff.get('ou-b')).toEqual({ amount: 123, currency: 'EUR' });
+    expect(eff.get('ou-a')).toEqual({
+      amount: 123,
+      currency: 'EUR',
+      thresholds: DEFAULT_THRESHOLDS,
+    });
+    expect(eff.get('ou-b')).toEqual({
+      amount: 123,
+      currency: 'EUR',
+      thresholds: DEFAULT_THRESHOLDS,
+    });
   });
 
   test('no default + amount:null override => remains undefined (explicit disable)', () => {
@@ -104,6 +113,38 @@ describe('computeOuBudgetAttachments - no default', () => {
     // The exact output depends on your homogeneous-subtree selection,
     // but it MUST NOT attach at ou-a (would hit ou-b).
     // It SHOULD attach at ou-c (or whatever minimal disjoint OUs cover only budgeted leaves).
-    expect(attachments).toEqual([{ ouId: 'ou-c', amount: 100, currency: 'EUR' }]);
+    expect(attachments).toEqual([
+      {
+        ouId: 'ou-c',
+        amount: 100,
+        currency: 'EUR',
+        thresholds: DEFAULT_THRESHOLDS,
+      },
+    ]);
+  });
+
+  test('same amount + different thresholds lead to different attachments', () => {
+    // r
+    //  └─ ou-a (100 EUR)
+    //      ├─ ou-b (inherits default amount thresholds)
+    //      └─ ou-c (100 EUR, custom thresholds)
+    const ous = [
+      { id: 'ou-a', parentId: null },
+      { id: 'ou-b', parentId: 'ou-a' },
+      { id: 'ou-c', parentId: 'ou-a' },
+    ];
+    const config = makeConfig({
+      organizationalUnits: {
+        'ou-a': { amount: 100, currency: 'EUR', thresholds: [50, 90] },
+        'ou-b': { amount: 100, currency: 'EUR' },
+      },
+    });
+
+    const attachments = computeOuBudgetAttachments(ous, config);
+
+    expect(attachments).toEqual([
+      { ouId: 'ou-b', amount: 100, currency: 'EUR', thresholds: DEFAULT_THRESHOLDS },
+      { ouId: 'ou-c', amount: 100, currency: 'EUR', thresholds: [50, 90] },
+    ]);
   });
 });
