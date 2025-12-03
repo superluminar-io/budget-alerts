@@ -73,9 +73,9 @@ function isBudgetConfig(value: unknown): value is BudgetConfig {
 export function sanitizeBudgetConfig(
   config: NullableSome<BudgetConfig, 'default' | 'organizationalUnits'>,
 ): BudgetConfig {
-  config.default ??= { currency: DISABLED_CURRENCY };
-  if (isBudgetConfig(config)) {
-    return config;
+  const sanitized = { ...config, default: config.default ?? { currency: DISABLED_CURRENCY } };
+  if (isBudgetConfig(sanitized)) {
+    return sanitized;
   }
   throw new Error('Invalid budget config structure');
 }
