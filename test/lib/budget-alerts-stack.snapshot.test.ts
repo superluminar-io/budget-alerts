@@ -3,6 +3,7 @@ import { Template } from 'aws-cdk-lib/assertions';
 import { BudgetAlertsStack } from '../../lib/budget-alerts-stack';
 import { type OuNode } from '../../lib/org/budget-planner';
 import { type BudgetConfig } from '../../lib/org/budget-config';
+import { sanitizeBudgetConfig } from '../../lib/org/budget-config-loader';
 
 // Disable CDK metadata for snapshots (no AWS::CDK::Metadata resources)
 process.env.CDK_DISABLE_METADATA = 'true';
@@ -147,6 +148,26 @@ describe('BudgetAlertsStack Snapshot Tests (Normalized)', () => {
         payroll: { amount: 20, currency: 'USD' },
       },
     };
+
+    const template = synthNormalizedTemplate(orgOus, config);
+    expect(template).toMatchSnapshot();
+  });
+
+  it('matches snapshot for overridden and inherited children and disabled default', () => {
+    const orgOus: OuNode[] = [
+      { id: 'root', parentId: null },
+      { id: 'apps', parentId: 'root' },
+      { id: 'payroll', parentId: 'apps' },
+      { id: 'accounting', parentId: 'apps' },
+    ];
+
+    const config: BudgetConfig = sanitizeBudgetConfig({
+      default: null,
+      organizationalUnits: {
+        apps: { amount: 10, currency: 'USD' },
+        payroll: { amount: 20, currency: 'USD' },
+      },
+    });
 
     const template = synthNormalizedTemplate(orgOus, config);
     expect(template).toMatchSnapshot();
