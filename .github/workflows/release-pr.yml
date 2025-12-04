@@ -48,7 +48,7 @@ jobs:
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Create PR
-        uses: peter-evans/create-pull-request@v6
+        uses: peter-evans/create-pull-request@v7
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           branch: release/v${{ steps.bump.outputs.version }}
@@ -60,4 +60,5 @@ jobs:
             - Bump: `${{ inputs.bump }}`
             - Version: `v${{ steps.bump.outputs.version }}`
           labels: release
+          draft: always-true
 
