@@ -47,19 +47,19 @@ jobs:
             exit 1
           fi
 
-      #- name: Publish to npm
-        #env:
-          #NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        #run: |
-          #set -euo pipefail
-          #NAME="$(node -p "require('./package.json').name")"
+      - name: Publish to npm
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          set -euo pipefail
+          NAME="$(node -p "require('./package.json').name")"
 
-          #ACCESS_FLAG=""
-          #if [[ "$NAME" == @*/* ]]; then
-            #ACCESS_FLAG="--access public"
-          #fi
+          ACCESS_FLAG=""
+          if [[ "$NAME" == @*/* ]]; then
+            ACCESS_FLAG="--access public"
+          fi
 
-          #npm publish --provenance $ACCESS_FLAG
+          npm publish --provenance $ACCESS_FLAG
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
