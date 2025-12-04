@@ -1,6 +1,6 @@
 {
   "name": "@superluminar-io/budget-alerts",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "bin": {
     "budget-alerts": "dist/bin/budget-alerts.js",
     "budget-alerts-init-config": "dist/bin/init-budget-config.js"
