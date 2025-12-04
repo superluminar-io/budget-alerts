@@ -100,7 +100,7 @@ export class BudgetAlertsStack extends Stack {
     // Filter out zero or negative amounts as they are not valid for budget creation.
     const validAttachments = attachments.filter((attachment) => attachment.amount > 0);
 
-    for (const attachment of validAttachments) {
+    validAttachments.forEach((attachment) => {
       const target = StackSetTarget.fromOrganizationalUnits({
         organizationalUnits: [attachment.ouId],
         regions: [this.region],
@@ -120,7 +120,7 @@ export class BudgetAlertsStack extends Stack {
       });
       alertStackSet.node.addDependency(assetBucket);
       alertStackSet.node.addDependency(permissions);
-    }
+    });
   }
 }
 
