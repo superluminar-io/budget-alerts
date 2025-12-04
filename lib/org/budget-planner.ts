@@ -158,8 +158,27 @@ function isEffectiveBudget(obj: unknown): obj is EffectiveBudget {
     return false;
   }
 
-  if (!('currency' in (obj as Record<string, unknown>))) {
+  const record = obj as Record<string, unknown>;
+
+  // currency is required and must be a string
+  if (!('currency' in record) || typeof record.currency !== 'string') {
     return false;
+  }
+
+  // amount is optional, but if present must be a number
+  if ('amount' in record && record.amount !== undefined && typeof record.amount !== 'number') {
+    return false;
+  }
+
+  // thresholds is optional, but if present must be a readonly array of numbers
+  if ('thresholds' in record && record.thresholds !== undefined) {
+    if (!Array.isArray(record.thresholds)) {
+      return false;
+    }
+    // Validate each element is a number
+    if (!record.thresholds.every((threshold) => typeof threshold === 'number')) {
+      return false;
+    }
   }
 
   return true;
