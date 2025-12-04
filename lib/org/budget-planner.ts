@@ -224,7 +224,11 @@ export function maximalUniformSubtreeRoots<V>(
 
     // The "property value" for this node:
     // Note: if .get(id) can be undefined and that’s meaningful, this still works.
-    const myVal = effectiveBudgets.get(id) as V;
+    const val = effectiveBudgets.get(id);
+    if (val === undefined) {
+      throw new Error(`No effective budget found for id ${id}`);
+    }
+    const myVal = val as V;
 
     // Combine children
     for (const childId of getChildren(id)) {
