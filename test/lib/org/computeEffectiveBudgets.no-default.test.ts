@@ -126,7 +126,7 @@ describe('computeOuBudgetAttachments - no default', () => {
   test('same amount + different thresholds lead to different attachments', () => {
     // r
     //  └─ ou-a (100 EUR)
-    //      ├─ ou-b (inherits default amount thresholds)
+    //      ├─ ou-b (inherits amount from ou-a, uses default thresholds)
     //      └─ ou-c (100 EUR, custom thresholds)
     const ous = [
       { id: 'ou-a', parentId: null },

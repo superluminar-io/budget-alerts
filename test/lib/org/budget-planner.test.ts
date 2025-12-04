@@ -1,4 +1,4 @@
-import { type Thresholds, type BudgetConfig } from '../../../lib/org/budget-config';
+import { type BudgetConfig } from '../../../lib/org/budget-config';
 import {
   buildOuTree,
   computeEffectiveBudgets,
@@ -172,7 +172,7 @@ describe('validateBudgetConfig', () => {
 });
 
 describe('computeHomogeneousSubtrees', () => {
-  it('should identify  one large homogeneous subtree correctly', () => {
+  it('should identify one large homogeneous subtree correctly', () => {
     const tree = buildOuTree(simpleValidOus);
 
     const budgets = new Map<string, { amount: number; currency: string }>([

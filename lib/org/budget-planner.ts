@@ -234,7 +234,7 @@ export function maximalUniformSubtreeRoots<V>(
         visiting.delete(id);
         return MIXED;
       }
-      if (!equalBudgets(childStatus.value, myVal)) {
+      if (!equals(childStatus.value, myVal)) {
         statusById.set(id, MIXED);
         visiting.delete(id);
         return MIXED;
