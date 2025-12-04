@@ -1,6 +1,7 @@
 export type Thresholds = readonly number[]; // e.g. [75, 100]
 
 export const DEFAULT_THRESHOLDS: Thresholds = [75, 100] as const;
+export const DEFAULT_CURRENCY = 'USD';
 
 export interface OuBudgetConfigEntry {
   /**
@@ -24,7 +25,7 @@ export interface OuBudgetConfigEntry {
 export interface BudgetConfig {
   default: {
     amount?: number;
-    currency: string;
+    currency?: string;
     thresholds?: Thresholds;
   };
 
