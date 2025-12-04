@@ -1,6 +1,6 @@
 {
   "name": "@superluminar-io/budget-alerts",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "bin": {
     "budget-alerts": "dist/bin/budget-alerts.js",
     "budget-alerts-init-config": "dist/bin/init-budget-config.js"
@@ -20,7 +20,11 @@
     "clean": "rm -rf dist .jest .tscache budget-alerts-*.tgz",
     "prepublishOnly": "npm run clean && npm run build"
   },
-  "files": ["dist/", "README.md", "LICENSE"],
+  "files": [
+    "dist/",
+    "README.md",
+    "LICENSE"
+  ],
   "license": "MIT",
   "publishConfig": {
     "access": "public"
