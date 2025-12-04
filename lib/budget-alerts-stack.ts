@@ -165,12 +165,12 @@ class BudgetAlert extends StackSetStack {
           },
         },
       },
-      notificationsWithSubscribers: [
-        {
+      notificationsWithSubscribers:
+        props.budget.thresholds?.map((threshold) => ({
           notification: {
             notificationType: 'ACTUAL',
             comparisonOperator: 'GREATER_THAN',
-            threshold: 50,
+            threshold: threshold,
             thresholdType: 'PERCENTAGE',
           },
           subscribers: [
@@ -179,22 +179,7 @@ class BudgetAlert extends StackSetStack {
               address: accountEmail,
             },
           ],
-        },
-        {
-          notification: {
-            notificationType: 'ACTUAL',
-            comparisonOperator: 'GREATER_THAN',
-            threshold: 100,
-            thresholdType: 'PERCENTAGE',
-          },
-          subscribers: [
-            {
-              subscriptionType: 'EMAIL',
-              address: accountEmail,
-            },
-          ],
-        },
-      ],
+        })) ?? [],
     });
   }
 }
