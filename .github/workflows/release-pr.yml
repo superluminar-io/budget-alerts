@@ -47,10 +47,6 @@ jobs:
           VERSION="$(node -p "require('./package.json').version")"
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
-      - name: Push branch
-        run: |
-          git push -u origin "release/v${{ steps.bump.outputs.version }}"
-
       - name: Create PR
         uses: peter-evans/create-pull-request@v6
         with:
