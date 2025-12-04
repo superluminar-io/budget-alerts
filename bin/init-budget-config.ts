@@ -7,7 +7,7 @@
 
 import { existsSync, readFileSync, writeFileSync } from 'fs';
 import { resolve } from 'path';
-import YAML, { parse as yamlParse } from 'yaml';
+import * as YAML from 'yaml';
 import type { BudgetConfig, OuBudgetConfigEntry } from '../lib/org/budget-config';
 import { loadOrgStructure, type OrgRoot, type OuNode } from '../lib/org/org-discovery';
 import log from 'loglevel';
@@ -33,7 +33,7 @@ function indexOusById(ous: OuNode[]): Record<string, OuNode> {
 function loadExistingConfig(path: string): BudgetConfig | null {
   if (!existsSync(path)) return null;
   const raw = readFileSync(path, 'utf8');
-  return yamlParse(raw) as BudgetConfig;
+  return YAML.parse(raw) as BudgetConfig;
 }
 
 /**
