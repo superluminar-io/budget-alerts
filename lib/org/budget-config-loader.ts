@@ -4,6 +4,7 @@ import { existsSync, readFileSync } from 'fs';
 import { resolve } from 'path';
 import { parse as yamlParse } from 'yaml';
 import {
+  DEFAULT_CURRENCY,
   DEFAULT_THRESHOLDS,
   DISABLED_CURRENCY,
   type BudgetConfig,
@@ -88,18 +89,20 @@ export function sanitizeBudgetConfig(
 ): BudgetConfig {
   const sanitized = { ...config, default: config.default ?? { currency: DISABLED_CURRENCY } };
   sanitized.default.thresholds ??= DEFAULT_THRESHOLDS;
+  sanitized.default.currency ??= DEFAULT_CURRENCY;
   // loop over organizationalUnits and fill in missing fields
   if (sanitized.organizationalUnits) {
     for (const [ouId, entry] of Object.entries(sanitized.organizationalUnits)) {
       if (!entry) {
         sanitized.organizationalUnits[ouId] = {
           amount: null,
-          currency: undefined,
+          currency: DISABLED_CURRENCY,
           thresholds: DEFAULT_THRESHOLDS,
         };
         continue;
       }
       entry.thresholds ??= DEFAULT_THRESHOLDS;
+      entry.currency ??= DEFAULT_CURRENCY;
     }
   }
   if (isBudgetConfig(sanitized)) {
