@@ -12,7 +12,7 @@ jest.mock('yaml', () => ({
 
 import { existsSync, readFileSync } from 'fs';
 import { parse as yamlParse } from 'yaml';
-import { loadBudgetConfig } from '../../../lib/org/budget-config-loader';
+import { loadBudgetConfig, sanitizeBudgetConfig } from '../../../lib/org/budget-config-loader';
 
 const mockedExistsSync = existsSync as unknown as jest.MockedFunction<typeof existsSync>;
 const mockedReadFileSync = readFileSync as unknown as jest.MockedFunction<typeof readFileSync>;
@@ -156,22 +156,38 @@ describe('loadBudgetConfig', () => {
     expect(() => loadBudgetConfig('bad-currency.yml')).toThrow(/Invalid budget config structure/);
   });
 
-  it('rejects configs where organizationalUnits is missing or not an object', () => {
+  it('rejects configs where organizationalUnits and default is missing or not an object', () => {
     mockedExistsSync.mockReturnValue(true);
     mockedReadFileSync.mockReturnValue('irrelevant');
 
     const badConfig = {
-      default: {
-        amount: 100,
-        currency: 'USD',
-      },
+      default: null,
       organizationalUnits: null,
     };
 
     mockedYamlParse.mockReturnValue(badConfig);
 
-    expect(loadBudgetConfig('bad-ous.yml')).toEqual(
-      expect.objectContaining({ default: { amount: 100, currency: 'USD' } }),
-    );
+    expect(() => {
+      loadBudgetConfig('bad-ous.yml');
+    }).toThrow(/Invalid budget config structure/);
+  });
+
+  describe('sanitizeBudgetConfig', () => {
+    it('accepts a minimal valid config', () => {
+      const minimalConfig: BudgetConfig = {
+        default: {
+          currency: 'USD',
+        },
+      };
+
+      const result = sanitizeBudgetConfig(minimalConfig);
+
+      expect(result).toEqual(minimalConfig);
+      expect(result.default.thresholds).toBeDefined();
+      expect(result.default.thresholds).toEqual([75, 100]);
+      expect(result.organizationalUnits).toBeUndefined();
+      expect(result.default.amount).toBeUndefined();
+      expect(result.default.currency).toBe('USD');
+    });
   });
 });

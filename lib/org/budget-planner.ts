@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 // lib/org/budget-planner.ts
 
-import { DISABLED_CURRENCY, type BudgetConfig } from './budget-config';
+import { DISABLED_CURRENCY, type Thresholds, type BudgetConfig } from './budget-config';
 
 export interface OuNode {
   id: string;
@@ -12,11 +12,13 @@ export interface OuBudgetAttachment {
   ouId: string;
   amount: number;
   currency: string;
+  thresholds?: Thresholds;
 }
 
 export interface EffectiveBudget {
   amount?: number;
   currency: string;
+  thresholds?: Thresholds;
 }
 
 export interface OuTree {
@@ -101,6 +103,7 @@ export function computeEffectiveBudgets(
       const eb: EffectiveBudget = {
         amount: config.default.amount,
         currency: config.default.currency,
+        thresholds: config.default.thresholds,
       };
       result.set(ouId, eb);
       return eb;
@@ -111,6 +114,7 @@ export function computeEffectiveBudgets(
       const eb: EffectiveBudget = {
         amount: cfgEntry.amount,
         currency: cfgEntry.currency ?? config.default.currency,
+        thresholds: cfgEntry.thresholds ?? config.default.thresholds,
       };
       result.set(ouId, eb);
       return eb;
@@ -133,6 +137,7 @@ export function computeEffectiveBudgets(
     const eb: EffectiveBudget = {
       amount: config.default.amount,
       currency: config.default.currency,
+      thresholds: config.default.thresholds,
     };
     result.set(ouId, eb);
     return eb;
@@ -148,60 +153,144 @@ export function computeEffectiveBudgets(
   return result;
 }
 
-/**
- * Determine for each OU whether its entire subtree has a single constant budget
- * (i.e. all descendants share the same EffectiveBudget).
- *
- * Returns a map ouId -> boolean.
- */
+function isEffectiveBudget(obj: unknown): obj is EffectiveBudget {
+  if (typeof obj !== 'object' || obj === null) {
+    return false;
+  }
+
+  const record = obj as Record<string, unknown>;
+
+  // currency is required and must be a string
+  if (!('currency' in record) || typeof record.currency !== 'string') {
+    return false;
+  }
+
+  // amount is optional, but if present must be a number
+  if ('amount' in record && record.amount !== undefined && typeof record.amount !== 'number') {
+    return false;
+  }
+
+  // thresholds is optional, but if present must be a readonly array of numbers
+  if ('thresholds' in record && record.thresholds !== undefined) {
+    if (!Array.isArray(record.thresholds)) {
+      return false;
+    }
+    // Validate each element is a number
+    if (!record.thresholds.every((threshold) => typeof threshold === 'number')) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+export function equalBudgets(a: unknown, b: unknown): boolean {
+  if (!isEffectiveBudget(a) || !isEffectiveBudget(b)) {
+    return false;
+  }
+  const arrayEqual = <T>(a: readonly T[], b: readonly T[]) =>
+    a.length === b.length && a.every((v, i) => v === b[i]);
+  return (
+    a.amount === b.amount &&
+    a.currency === b.currency &&
+    arrayEqual(a.thresholds ?? [], b.thresholds ?? [])
+  );
+}
+
 export function computeHomogeneousSubtrees(
   tree: OuTree,
   effectiveBudgets: Map<string, EffectiveBudget>,
-): Set<string> {
-  const homogeneous = new Map<string, boolean>();
+) {
+  return new Set(maximalUniformSubtreeRoots(tree, effectiveBudgets));
+}
 
-  function isHomogeneous(ouId: string): boolean {
-    const cached = homogeneous.get(ouId);
-    if (cached !== undefined) return cached;
+type Status<V> = { kind: 'mixed' } | { kind: 'uniform'; value: V };
 
-    const thisBudget = effectiveBudgets.get(ouId);
-    if (!thisBudget) {
-      throw new Error(`No effective budget for OU ${ouId}`);
+const MIXED: Status<never> = { kind: 'mixed' };
+
+function isUniform<V>(s: Status<V>): s is { kind: 'uniform'; value: V } {
+  return s.kind === 'uniform';
+}
+
+/**
+ * Returns the roots (ouIds) of maximal qualifying subtrees:
+ * "a rooted subtree whose all nodes share a single common property value",
+ * and it is maximal w.r.t. being "absorbed" by its parent with the same value.
+ */
+export function maximalUniformSubtreeRoots<V>(
+  tree: OuTree,
+  effectiveBudgets: Map<string, V>,
+  equals: (a: V, b: V) => boolean = equalBudgets,
+): string[] {
+  // 1) Postorder DP: compute uniform/mixed status per node (memoized DFS)
+  const statusById = new Map<string, Status<V>>();
+  const visiting = new Set<string>(); // for cycle detection (shouldn't happen in a tree)
+
+  const getChildren = (id: string): string[] => tree.children.get(id) ?? [];
+
+  const computeStatus = (id: string): Status<V> => {
+    const cached = statusById.get(id);
+    if (cached) return cached;
+
+    if (visiting.has(id)) {
+      // If your data can never contain cycles, you can replace this with just MIXED or throw.
+      throw new Error(`Cycle detected in OuTree at node ${id}`);
     }
+    visiting.add(id);
 
-    const childIds = tree.children.get(ouId) ?? [];
-    if (childIds.length === 0) {
-      homogeneous.set(ouId, true);
-      return true;
+    // The "property value" for this node:
+    // Note: if .get(id) can be undefined and that’s meaningful, this still works.
+    const val = effectiveBudgets.get(id);
+    if (val === undefined) {
+      throw new Error(`No effective budget found for id ${id}`);
     }
+    const myVal = val as V;
 
-    for (const childId of childIds) {
-      if (!isHomogeneous(childId)) {
-        homogeneous.set(ouId, false);
-        return false;
+    // Combine children
+    for (const childId of getChildren(id)) {
+      const childStatus = computeStatus(childId);
+      if (!isUniform(childStatus)) {
+        statusById.set(id, MIXED);
+        visiting.delete(id);
+        return MIXED;
       }
-
-      const childBudget = effectiveBudgets.get(childId)!;
-      if (
-        childBudget.amount !== thisBudget.amount ||
-        childBudget.currency !== thisBudget.currency
-      ) {
-        homogeneous.set(ouId, false);
-        return false;
+      if (!equals(childStatus.value, myVal)) {
+        statusById.set(id, MIXED);
+        visiting.delete(id);
+        return MIXED;
       }
     }
 
-    homogeneous.set(ouId, true);
-    return true;
-  }
+    const uniform: Status<V> = { kind: 'uniform', value: myVal };
+    statusById.set(id, uniform);
+    visiting.delete(id);
+    return uniform;
+  };
 
-  for (const ouId of tree.byId.keys()) {
-    isHomogeneous(ouId);
-  }
+  // compute status for all nodes reachable from roots (and also any stragglers in byId)
+  for (const r of tree.roots) computeStatus(r);
+  for (const id of tree.byId.keys()) computeStatus(id);
 
-  const result = new Set<string>();
-  for (const [ouId, isHom] of homogeneous.entries()) {
-    if (isHom) result.add(ouId);
+  // 2) Collect maximal uniform subtree roots
+  const result: string[] = [];
+
+  for (const [id, st] of statusById.entries()) {
+    if (!isUniform(st)) continue;
+
+    const node = tree.byId.get(id);
+    const parentId = node?.parentId ?? null;
+
+    if (parentId === null) {
+      // Root uniform subtree is maximal by definition (no parent to absorb it)
+      result.push(id);
+      continue;
+    }
+
+    const parentStatus = statusById.get(parentId);
+    if (!parentStatus || !isUniform(parentStatus) || !equals(parentStatus.value, st.value)) {
+      // Parent is mixed OR parent uniform but with different value => this node starts a maximal uniform subtree
+      result.push(id);
+    }
   }
 
   return result;
@@ -240,6 +329,7 @@ export function selectOuBudgetAttachments(
           ouId,
           amount: budget.amount,
           currency: budget.currency,
+          thresholds: budget.thresholds,
         });
       }
       return; // this OU covers its whole subtree
@@ -274,6 +364,6 @@ export function computeOuBudgetAttachments(
 ): OuBudgetAttachment[] {
   const tree = buildOuTree(ous);
   const effectiveBudgets = computeEffectiveBudgets(tree, config);
-  const homogeneous = computeHomogeneousSubtrees(tree, effectiveBudgets);
-  return selectOuBudgetAttachments(tree, effectiveBudgets, homogeneous);
+  const homogeneous = maximalUniformSubtreeRoots(tree, effectiveBudgets);
+  return selectOuBudgetAttachments(tree, effectiveBudgets, new Set(homogeneous));
 }
