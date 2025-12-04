@@ -1,5 +1,5 @@
 {
-  "name": "budget-alerts",
+  "name": "@superluminar-io/budget-alerts",
   "version": "0.1.0",
   "bin": {
     "budget-alerts": "dist/bin/budget-alerts.js",
@@ -17,12 +17,14 @@
     "lint:fix": "eslint . --fix",
     "config": "ts-node --transpile-only bin/init-budget-config.ts",
     "coverage": "jest --coverage",
-    "clean": "rm -rf dist .jest .tscache budget-alerts-*.tgz"
+    "clean": "rm -rf dist .jest .tscache budget-alerts-*.tgz",
+    "prepublishOnly": "npm run clean && npm run build"
   },
-  "files": [
-    "dist/**/*.{js,d.ts}",
-    "README.md"
-  ],
+  "files": ["dist/", "README.md", "LICENSE"],
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
   "devDependencies": {
     "@eslint/js": "^9.13.0",
     "@types/jest": "^30.0.0",
