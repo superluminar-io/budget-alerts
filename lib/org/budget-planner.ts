@@ -158,10 +158,7 @@ function isEffectiveBudget(obj: unknown): obj is EffectiveBudget {
     return false;
   }
 
-  if (
-    !('amount' in (obj as Record<string, unknown>)) &&
-    !('currency' in (obj as Record<string, unknown>))
-  ) {
+  if (!('currency' in (obj as Record<string, unknown>))) {
     return false;
   }
 
