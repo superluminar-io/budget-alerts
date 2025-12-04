@@ -89,6 +89,7 @@ export function sanitizeBudgetConfig(
 ): BudgetConfig {
   const sanitized = { ...config, default: config.default ?? { currency: DISABLED_CURRENCY } };
   sanitized.default.thresholds ??= DEFAULT_THRESHOLDS;
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   sanitized.default.currency ??= DEFAULT_CURRENCY;
   // loop over organizationalUnits and fill in missing fields
   if (sanitized.organizationalUnits) {
