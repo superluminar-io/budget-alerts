@@ -174,11 +174,11 @@ export function equalBudgets(a: unknown, b: unknown): boolean {
   }
   const arrayEqual = <T>(a: readonly T[], b: readonly T[]) =>
     a.length === b.length && a.every((v, i) => v === b[i]);
-  const retVal =
+  return (
     a.amount === b.amount &&
     a.currency === b.currency &&
-    arrayEqual(a.thresholds ?? [], b.thresholds ?? []);
-  return retVal;
+    arrayEqual(a.thresholds ?? [], b.thresholds ?? [])
+  );
 }
 
 export function computeHomogeneousSubtrees(

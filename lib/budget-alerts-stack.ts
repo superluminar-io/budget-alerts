@@ -97,10 +97,10 @@ export class BudgetAlertsStack extends Stack {
       }),
     );
 
-    // Filter out zero or negative amounts as they are not valid for budget creation.
-    const validAttachments = attachments.filter((attachment) => attachment.amount > 0);
+    // Attachments are already filtered for valid amounts in computeOuBudgetAttachments.
 
-    validAttachments.forEach((attachment) => {
+
+    attachments.forEach((attachment) => {
       const target = StackSetTarget.fromOrganizationalUnits({
         organizationalUnits: [attachment.ouId],
         regions: [this.region],
