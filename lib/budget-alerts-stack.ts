@@ -99,7 +99,6 @@ export class BudgetAlertsStack extends Stack {
 
     // Attachments are already filtered for valid amounts in computeOuBudgetAttachments.
 
-
     attachments.forEach((attachment) => {
       const target = StackSetTarget.fromOrganizationalUnits({
         organizationalUnits: [attachment.ouId],
