@@ -97,12 +97,10 @@ export class BudgetAlertsStack extends Stack {
       }),
     );
 
-    for (const attachment of attachments) {
-      // Zero or negative amounts are skipped intentionally, as they are not valid for budget creation.
-      if (attachment.amount <= 0) {
-        continue;
-      }
+    // Filter out zero or negative amounts as they are not valid for budget creation.
+    const validAttachments = attachments.filter((attachment) => attachment.amount > 0);
 
+    for (const attachment of validAttachments) {
       const target = StackSetTarget.fromOrganizationalUnits({
         organizationalUnits: [attachment.ouId],
         regions: [this.region],
