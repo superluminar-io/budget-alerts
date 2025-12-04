@@ -95,7 +95,7 @@ export function sanitizeBudgetConfig(
         sanitized.organizationalUnits[ouId] = {
           amount: null,
           currency: undefined,
-          thresholds: undefined,
+          thresholds: DEFAULT_THRESHOLDS,
         };
         continue;
       }
