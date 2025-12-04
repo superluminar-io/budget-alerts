@@ -27,12 +27,14 @@ jobs:
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Create tag if missing
+        id: tag
         run: |
           set -euo pipefail
           TAG="v${{ steps.v.outputs.version }}"
 
           if git rev-parse "$TAG" >/dev/null 2>&1; then
             echo "Tag $TAG already exists. Nothing to do."
+            echo "created=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
@@ -40,13 +42,17 @@ jobs:
           MSG="$(git log -1 --pretty=%B)"
           if ! echo "$MSG" | grep -qE '^chore\(release\): v[0-9]+\.[0-9]+\.[0-9]+'; then
             echo "Last commit doesn't look like a release commit. Skipping tag."
+            echo "created=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
           git tag "$TAG"
           git push origin "$TAG"
+          echo "created=true" >> "$GITHUB_OUTPUT"
+
 
       - name: Invoke workflow without inputs
         uses: benc-uk/workflow-dispatch@v1
+        if: steps.tag.outputs.created == 'true'
         with:
           workflow: Publish
