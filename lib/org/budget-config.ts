@@ -14,7 +14,9 @@ export interface OuBudgetConfigEntry {
    */
   currency?: string;
 
-  /** Optional thresholds override.
+  /**
+   * Percentage thresholds at which budget alerts will be triggered.
+   * If omitted, the default thresholds ([75, 100]) will be used.
    */
   thresholds?: Thresholds;
 }

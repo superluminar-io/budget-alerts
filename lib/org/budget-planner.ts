@@ -173,7 +173,7 @@ export function equalBudgets(a: unknown, b: unknown): boolean {
     return false;
   }
   const arrayEqual = <T>(a: readonly T[], b: readonly T[]) =>
-    a.length === b.length && a.every((v, i) => Object.is(v, b[i]));
+    a.length === b.length && a.every((v, i) => v === b[i]);
   const retVal =
     a.amount === b.amount &&
     a.currency === b.currency &&
@@ -224,7 +224,11 @@ export function maximalUniformSubtreeRoots<V>(
 
     // The "property value" for this node:
     // Note: if .get(id) can be undefined and that’s meaningful, this still works.
-    const myVal = effectiveBudgets.get(id) as V;
+    const val = effectiveBudgets.get(id);
+    if (val === undefined) {
+      throw new Error(`No effective budget found for id ${id}`);
+    }
+    const myVal = val as V;
 
     // Combine children
     for (const childId of getChildren(id)) {
@@ -234,7 +238,7 @@ export function maximalUniformSubtreeRoots<V>(
         visiting.delete(id);
         return MIXED;
       }
-      if (!equalBudgets(childStatus.value, myVal)) {
+      if (!equals(childStatus.value, myVal)) {
         statusById.set(id, MIXED);
         visiting.delete(id);
         return MIXED;
