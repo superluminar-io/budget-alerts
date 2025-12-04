@@ -97,7 +97,9 @@ export class BudgetAlertsStack extends Stack {
       }),
     );
 
-    for (const attachment of attachments) {
+    // Attachments are already filtered for valid amounts in computeOuBudgetAttachments.
+
+    attachments.forEach((attachment) => {
       const target = StackSetTarget.fromOrganizationalUnits({
         organizationalUnits: [attachment.ouId],
         regions: [this.region],
@@ -117,7 +119,7 @@ export class BudgetAlertsStack extends Stack {
       });
       alertStackSet.node.addDependency(assetBucket);
       alertStackSet.node.addDependency(permissions);
-    }
+    });
   }
 }
 
@@ -163,12 +165,12 @@ class BudgetAlert extends StackSetStack {
           },
         },
       },
-      notificationsWithSubscribers: [
-        {
+      notificationsWithSubscribers:
+        props.budget.thresholds?.map((threshold) => ({
           notification: {
             notificationType: 'ACTUAL',
             comparisonOperator: 'GREATER_THAN',
-            threshold: 50,
+            threshold: threshold,
             thresholdType: 'PERCENTAGE',
           },
           subscribers: [
@@ -177,22 +179,7 @@ class BudgetAlert extends StackSetStack {
               address: accountEmail,
             },
           ],
-        },
-        {
-          notification: {
-            notificationType: 'ACTUAL',
-            comparisonOperator: 'GREATER_THAN',
-            threshold: 100,
-            thresholdType: 'PERCENTAGE',
-          },
-          subscribers: [
-            {
-              subscriptionType: 'EMAIL',
-              address: accountEmail,
-            },
-          ],
-        },
-      ],
+        })) ?? [],
     });
   }
 }

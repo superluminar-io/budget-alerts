@@ -8,7 +8,11 @@
 import { existsSync, readFileSync, writeFileSync } from 'fs';
 import { resolve } from 'path';
 import * as YAML from 'yaml';
-import type { BudgetConfig, OuBudgetConfigEntry } from '../lib/org/budget-config';
+import {
+  DEFAULT_CURRENCY,
+  type BudgetConfig,
+  type OuBudgetConfigEntry,
+} from '../lib/org/budget-config';
 import { loadOrgStructure, type OrgRoot, type OuNode } from '../lib/org/org-discovery';
 import log from 'loglevel';
 
@@ -49,7 +53,7 @@ function buildOrMergeConfig(ous: OuNode[], existing: BudgetConfig | null): Budge
   const config = existing ?? {
     default: {
       amount: 100,
-      currency: 'USD',
+      currency: DEFAULT_CURRENCY,
     },
     organizationalUnits: {},
   };
