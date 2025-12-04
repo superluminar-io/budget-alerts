@@ -165,7 +165,7 @@ function isEffectiveBudget(obj: unknown): obj is EffectiveBudget {
     return false;
   }
 
-  // amount is optional, but if present must be a number or undefined
+  // amount is optional, but if present must be a number
   if ('amount' in record && record.amount !== undefined && typeof record.amount !== 'number') {
     return false;
   }
@@ -176,10 +176,8 @@ function isEffectiveBudget(obj: unknown): obj is EffectiveBudget {
       return false;
     }
     // Validate each element is a number
-    for (const threshold of record.thresholds) {
-      if (typeof threshold !== 'number') {
-        return false;
-      }
+    if (!record.thresholds.every((threshold) => typeof threshold === 'number')) {
+      return false;
     }
   }
 
