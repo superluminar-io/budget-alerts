@@ -1,4 +1,4 @@
-name: Publish on tag
+name: Publish
 
 on:
   workflow_dispatch:
