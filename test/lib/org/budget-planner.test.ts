@@ -172,6 +172,21 @@ describe('validateBudgetConfig', () => {
 });
 
 describe('computeHomogeneousSubtrees', () => {
+  it('should identify one large homogeneous subtree correctly', () => {
+    const tree = buildOuTree(simpleValidOus);
+
+    const budgets = new Map<string, { amount: number; currency: string }>([
+      ['A', { amount: 100, currency: 'USD' }],
+      ['B', { amount: 100, currency: 'USD' }],
+      ['C', { amount: 100, currency: 'USD' }],
+      ['D', { amount: 100, currency: 'USD' }],
+      ['E', { amount: 100, currency: 'USD' }],
+    ]);
+
+    const homogeneousSubtrees = computeHomogeneousSubtrees(tree, budgets);
+
+    expect(homogeneousSubtrees).toEqual(new Set(['A']));
+  });
   it('should identify homogeneous subtrees correctly', () => {
     const tree = buildOuTree(simpleValidOus);
 
@@ -181,6 +196,22 @@ describe('computeHomogeneousSubtrees', () => {
       ['C', { amount: 200, currency: 'USD' }],
       ['D', { amount: 100, currency: 'USD' }],
       ['E', { amount: 300, currency: 'USD' }],
+    ]);
+
+    const homogeneousSubtrees = computeHomogeneousSubtrees(tree, budgets);
+
+    expect(homogeneousSubtrees).toEqual(new Set(['C', 'D', 'E']));
+  });
+
+  it('should identify homogeneous subtrees correctly respecting thresholds', () => {
+    const tree = buildOuTree(simpleValidOus);
+
+    const budgets = new Map<string, { amount: number; currency: string; thresholds: number[] }>([
+      ['A', { amount: 100, currency: 'USD', thresholds: [10] }],
+      ['B', { amount: 100, currency: 'USD', thresholds: [10] }],
+      ['C', { amount: 100, currency: 'USD', thresholds: [20] }],
+      ['D', { amount: 100, currency: 'USD', thresholds: [10] }],
+      ['E', { amount: 100, currency: 'USD', thresholds: [5] }],
     ]);
 
     const homogeneousSubtrees = computeHomogeneousSubtrees(tree, budgets);
