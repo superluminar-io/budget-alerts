@@ -1,12 +1,16 @@
 {
   "name": "@superluminar-io/budget-alerts",
-  "version": "0.1.1",
+  "version": "0.1.0",
   "bin": {
     "budget-alerts": "dist/bin/budget-alerts.js",
     "budget-alerts-init-config": "dist/bin/init-budget-config.js"
   },
   "engines": {
     "node": ">=24.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/superluminar-io/budget-alerts"
   },
   "scripts": {
     "build": "tsc",
