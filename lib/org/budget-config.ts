@@ -1,4 +1,7 @@
-// lib/org/budget-config.ts
+export type Thresholds = readonly number[]; // e.g. [75, 100]
+
+export const DEFAULT_THRESHOLDS: Thresholds = [75, 100] as const;
+export const DEFAULT_CURRENCY = 'USD';
 
 export interface OuBudgetConfigEntry {
   /**
@@ -9,15 +12,21 @@ export interface OuBudgetConfigEntry {
 
   /**
    * Optional currency override.
-   * Usually omitted; default currency from BudgetConfig.default is used.
    */
   currency?: string;
+
+  /**
+   * Percentage thresholds at which budget alerts will be triggered.
+   * If omitted, the default thresholds ([75, 100]) will be used.
+   */
+  thresholds?: Thresholds;
 }
 
 export interface BudgetConfig {
   default: {
     amount?: number;
     currency: string;
+    thresholds?: Thresholds;
   };
 
   /**
