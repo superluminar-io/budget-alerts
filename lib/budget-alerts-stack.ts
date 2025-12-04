@@ -98,6 +98,8 @@ export class BudgetAlertsStack extends Stack {
     );
 
     for (const attachment of attachments) {
+      // Only process budgets with a positive amount.
+      // Zero or negative amounts are skipped intentionally, as they are not valid for budget creation.
       if (attachment.amount > 0) {
         const target = StackSetTarget.fromOrganizationalUnits({
           organizationalUnits: [attachment.ouId],

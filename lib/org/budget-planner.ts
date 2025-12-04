@@ -173,7 +173,7 @@ export function equalBudgets(a: unknown, b: unknown): boolean {
     return false;
   }
   const arrayEqual = <T>(a: readonly T[], b: readonly T[]) =>
-    a.length === b.length && a.every((v, i) => Object.is(v, b[i]));
+    a.length === b.length && a.every((v, i) => v === b[i]);
   const retVal =
     a.amount === b.amount &&
     a.currency === b.currency &&
