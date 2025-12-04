@@ -1,9 +1,11 @@
 name: Publish on tag
 
 on:
-  push:
-    tags:
-      - "v*.*.*"
+  workflow_run:
+    types:
+      - completed
+    workflows:
+      - Tag release on main
 
 concurrency:
   group: publish-${{ github.ref }}
