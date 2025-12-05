@@ -18,6 +18,7 @@ jobs:
     permissions:
       contents: write   # create GitHub Release
       id-token: write   # npm provenance (optional but recommended)
+      actions: write    # softprops/action-gh-release
     steps:
       - name: Checkout tag
         uses: actions/checkout@v6
