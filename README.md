@@ -142,7 +142,7 @@ This solution automates budget deployment using three core elements:
 The architecture diagram (see image) illustrates this high-level structure:
 A centralized orchestrating stack → stacksets per OU subtree → per-account deployments.
 
-![Architecture Diagram](./docs/architecture.png)
+![Architecture Diagram](./docs/diagrams/architecture.png)
 
 ---
 
