@@ -58,4 +58,6 @@ jobs:
         with:
           workflow: Publish
           inputs: |
-            version: ${{ steps.v.outputs.version }}
+            {
+              "version": "v${{ steps.v.outputs.version }}"
+            }
