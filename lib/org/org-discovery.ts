@@ -69,6 +69,6 @@ export async function loadOrgStructure(): Promise<OrgStructure> {
 
   return {
     root: { id: root.Id, name: root.Name },
-    ous,
+    ous: [{ id: root.Id, name: root.Name, parentId: null }, ...ous],
   };
 }
