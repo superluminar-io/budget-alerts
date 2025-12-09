@@ -38,7 +38,7 @@ export function buildOuTree(ous: OuNode[]): OuTree {
   const roots: string[] = [];
 
   for (const ou of ous) {
-    if (!ou.id) continue;
+    if (!ou.id) throw new Error(`OU with empty id found: ${JSON.stringify(ou)}`);
     byId.set(ou.id, ou);
 
     if (ou.parentId === null) {
@@ -184,9 +184,13 @@ function isEffectiveBudget(obj: unknown): obj is EffectiveBudget {
   return true;
 }
 
-export function equalBudgets(a: unknown, b: unknown): boolean {
+export function isCompatibleWith(a: unknown, b: unknown): boolean {
   if (!isEffectiveBudget(a) || !isEffectiveBudget(b)) {
     return false;
+  }
+  console.log(`Comparing effective budgets: ${JSON.stringify(a)} vs ${JSON.stringify(b)}`);
+  if (!b.amount) {
+    return true; // b has no budget, so compatible with anything
   }
   const arrayEqual = <T>(a: readonly T[], b: readonly T[]) =>
     a.length === b.length && a.every((v, i) => v === b[i]);
@@ -220,7 +224,7 @@ function isUniform<V>(s: Status<V>): s is { kind: 'uniform'; value: V } {
 export function maximalUniformSubtreeRoots<V>(
   tree: OuTree,
   effectiveBudgets: Map<string, V>,
-  equals: (a: V, b: V) => boolean = equalBudgets,
+  isCompatibleWithChild: (a: V, b: V) => boolean = isCompatibleWith,
 ): string[] {
   // 1) Postorder DP: compute uniform/mixed status per node (memoized DFS)
   const statusById = new Map<string, Status<V>>();
@@ -254,7 +258,7 @@ export function maximalUniformSubtreeRoots<V>(
         visiting.delete(id);
         return MIXED;
       }
-      if (!equals(childStatus.value, myVal)) {
+      if (!isCompatibleWithChild(myVal, childStatus.value)) {
         statusById.set(id, MIXED);
         visiting.delete(id);
         return MIXED;
@@ -287,7 +291,11 @@ export function maximalUniformSubtreeRoots<V>(
     }
 
     const parentStatus = statusById.get(parentId);
-    if (!parentStatus || !isUniform(parentStatus) || !equals(parentStatus.value, st.value)) {
+    if (
+      !parentStatus ||
+      !isUniform(parentStatus) ||
+      !isCompatibleWithChild(parentStatus.value, st.value)
+    ) {
       // Parent is mixed OR parent uniform but with different value => this node starts a maximal uniform subtree
       result.push(id);
     }
