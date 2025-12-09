@@ -80,7 +80,6 @@ export class BudgetAlertsStack extends Stack {
       functionName: providerName,
       principal: '*',
       principalOrgId: orgId,
-      sourceArn: `arn:${this.partition}:cloudformation:*:*:stack/*/*`,
     });
     permissions.node.addDependency(provider);
 
@@ -116,6 +115,9 @@ export class BudgetAlertsStack extends Stack {
         ),
         deploymentType: DeploymentType.serviceManaged(),
         capabilities: [Capability.NAMED_IAM],
+        parameters: {
+          delegatedAdminAccountId: Stack.of(this).account,
+        },
       });
       alertStackSet.node.addDependency(assetBucket);
       alertStackSet.node.addDependency(permissions);
@@ -131,6 +133,12 @@ export interface BudgetAlertProps extends StackSetStackProps {
 class BudgetAlert extends StackSetStack {
   constructor(scope: Construct, id: string, props: BudgetAlertProps) {
     super(scope, id, props);
+    const delegatedAdminAccountIdParam = new CfnParameter(this, 'DelegatedAdminAccountId', {
+      type: 'String',
+      description: 'Account ID of the StackSet administrator/delegated admin account',
+    });
+
+    const delegatedAdminAccountId = delegatedAdminAccountIdParam.valueAsString;
 
     const emailLookup = new CustomResource(this, 'AccountEmailLookup', {
       serviceToken: Arn.format({
@@ -138,7 +146,7 @@ class BudgetAlert extends StackSetStack {
         service: 'lambda',
         resource: 'function',
         resourceName: 'DescribeAccountEmailProviderFn',
-        account: props.delegatedAdminAccountId,
+        account: delegatedAdminAccountId,
         arnFormat: ArnFormat.COLON_RESOURCE_NAME,
         partition: this.partition,
       }),
