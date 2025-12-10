@@ -80,18 +80,6 @@ exports[`BudgetAlertsStack Snapshot Tests (Normalized) matches snapshot for a si
             "Organization.Id",
           ],
         },
-        "SourceArn": {
-          "Fn::Join": [
-            "",
-            [
-              "arn:",
-              {
-                "Ref": "AWS::Partition",
-              },
-              ":cloudformation:*:*:stack/*/*",
-            ],
-          ],
-        },
       },
       "Type": "AWS::Lambda::Permission",
     },
@@ -190,6 +178,14 @@ exports[`BudgetAlertsStack Snapshot Tests (Normalized) matches snapshot for a si
         "ManagedExecution": {
           "Active": true,
         },
+        "Parameters": [
+          {
+            "ParameterKey": "delegatedAdminAccountId",
+            "ParameterValue": {
+              "Ref": "AWS::AccountId",
+            },
+          },
+        ],
         "PermissionModel": "SERVICE_MANAGED",
         "StackInstancesGroup": [
           {
@@ -208,7 +204,7 @@ exports[`BudgetAlertsStack Snapshot Tests (Normalized) matches snapshot for a si
         ],
         "StackSetName": "SnapshotTestStackBudgetAlertStackSetprodD0A9C4EE",
         "TemplateURL": {
-          "Fn::Sub": "https://s3.\${AWS::Region}.\${AWS::URLSuffix}/cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}/93f8952ad01f2303e7b4f0b03a1db5babf21019d60a4676f8ecbbbf0b8986614.json",
+          "Fn::Sub": "https://s3.\${AWS::Region}.\${AWS::URLSuffix}/cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}/1657947698fc2af1b208595ed00acfb029e861077a5458946cebb3e846be98d4.json",
         },
       },
       "Type": "AWS::CloudFormation::StackSet",
@@ -587,18 +583,6 @@ exports[`BudgetAlertsStack Snapshot Tests (Normalized) matches snapshot for over
             "Organization.Id",
           ],
         },
-        "SourceArn": {
-          "Fn::Join": [
-            "",
-            [
-              "arn:",
-              {
-                "Ref": "AWS::Partition",
-              },
-              ":cloudformation:*:*:stack/*/*",
-            ],
-          ],
-        },
       },
       "Type": "AWS::Lambda::Permission",
     },
@@ -697,6 +681,14 @@ exports[`BudgetAlertsStack Snapshot Tests (Normalized) matches snapshot for over
         "ManagedExecution": {
           "Active": true,
         },
+        "Parameters": [
+          {
+            "ParameterKey": "delegatedAdminAccountId",
+            "ParameterValue": {
+              "Ref": "AWS::AccountId",
+            },
+          },
+        ],
         "PermissionModel": "SERVICE_MANAGED",
         "StackInstancesGroup": [
           {
@@ -715,7 +707,7 @@ exports[`BudgetAlertsStack Snapshot Tests (Normalized) matches snapshot for over
         ],
         "StackSetName": "SnapshotTestStackBudgetAlertStackSetaccounting0AA9FC10",
         "TemplateURL": {
-          "Fn::Sub": "https://s3.\${AWS::Region}.\${AWS::URLSuffix}/cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}/b5a5c4a2516d8e0589f15c0453e5295f307a9f5c734f9e5ad1614214c0647f69.json",
+          "Fn::Sub": "https://s3.\${AWS::Region}.\${AWS::URLSuffix}/cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}/3a7454e0a344f071fb20d7feda5ec1b323846302f41a35e040fe94d5e5129229.json",
         },
       },
       "Type": "AWS::CloudFormation::StackSet",
@@ -738,6 +730,14 @@ exports[`BudgetAlertsStack Snapshot Tests (Normalized) matches snapshot for over
         "ManagedExecution": {
           "Active": true,
         },
+        "Parameters": [
+          {
+            "ParameterKey": "delegatedAdminAccountId",
+            "ParameterValue": {
+              "Ref": "AWS::AccountId",
+            },
+          },
+        ],
         "PermissionModel": "SERVICE_MANAGED",
         "StackInstancesGroup": [
           {
@@ -756,7 +756,7 @@ exports[`BudgetAlertsStack Snapshot Tests (Normalized) matches snapshot for over
         ],
         "StackSetName": "SnapshotTestStackBudgetAlertStackSetpayroll0ECEEDFC",
         "TemplateURL": {
-          "Fn::Sub": "https://s3.\${AWS::Region}.\${AWS::URLSuffix}/cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}/d25b484c26d2cfd966ac1bfc94482c77a3da811ae98f04e92bf9dfc915d97e59.json",
+          "Fn::Sub": "https://s3.\${AWS::Region}.\${AWS::URLSuffix}/cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}/00620b14698f0fdbe46f28bba631b0a2c48458899e9636c11426a0784f93daec.json",
         },
       },
       "Type": "AWS::CloudFormation::StackSet",
@@ -1135,18 +1135,6 @@ exports[`BudgetAlertsStack Snapshot Tests (Normalized) matches snapshot for over
             "Organization.Id",
           ],
         },
-        "SourceArn": {
-          "Fn::Join": [
-            "",
-            [
-              "arn:",
-              {
-                "Ref": "AWS::Partition",
-              },
-              ":cloudformation:*:*:stack/*/*",
-            ],
-          ],
-        },
       },
       "Type": "AWS::Lambda::Permission",
     },
@@ -1245,6 +1233,14 @@ exports[`BudgetAlertsStack Snapshot Tests (Normalized) matches snapshot for over
         "ManagedExecution": {
           "Active": true,
         },
+        "Parameters": [
+          {
+            "ParameterKey": "delegatedAdminAccountId",
+            "ParameterValue": {
+              "Ref": "AWS::AccountId",
+            },
+          },
+        ],
         "PermissionModel": "SERVICE_MANAGED",
         "StackInstancesGroup": [
           {
@@ -1263,7 +1259,7 @@ exports[`BudgetAlertsStack Snapshot Tests (Normalized) matches snapshot for over
         ],
         "StackSetName": "SnapshotTestStackBudgetAlertStackSetaccounting0AA9FC10",
         "TemplateURL": {
-          "Fn::Sub": "https://s3.\${AWS::Region}.\${AWS::URLSuffix}/cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}/5576b040d8a229201131d562b9957cdb915cad593b2b377bf86b8616f22ebeb4.json",
+          "Fn::Sub": "https://s3.\${AWS::Region}.\${AWS::URLSuffix}/cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}/f4b1da6154d38210d37f7b6bbc202a9b56fab1f922b1b36d5505464b8d6fd0a8.json",
         },
       },
       "Type": "AWS::CloudFormation::StackSet",
@@ -1286,6 +1282,14 @@ exports[`BudgetAlertsStack Snapshot Tests (Normalized) matches snapshot for over
         "ManagedExecution": {
           "Active": true,
         },
+        "Parameters": [
+          {
+            "ParameterKey": "delegatedAdminAccountId",
+            "ParameterValue": {
+              "Ref": "AWS::AccountId",
+            },
+          },
+        ],
         "PermissionModel": "SERVICE_MANAGED",
         "StackInstancesGroup": [
           {
@@ -1304,7 +1308,7 @@ exports[`BudgetAlertsStack Snapshot Tests (Normalized) matches snapshot for over
         ],
         "StackSetName": "SnapshotTestStackBudgetAlertStackSetpayroll0ECEEDFC",
         "TemplateURL": {
-          "Fn::Sub": "https://s3.\${AWS::Region}.\${AWS::URLSuffix}/cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}/a9c64f1668c890b08b1310fae1db124341f2cd9fe0236c018bde051c78f00e30.json",
+          "Fn::Sub": "https://s3.\${AWS::Region}.\${AWS::URLSuffix}/cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}/bf134450653c3097ff4ad7f22b86e876cfde1ccd2fa7e4758d5c1360e934a94f.json",
         },
       },
       "Type": "AWS::CloudFormation::StackSet",
@@ -1683,18 +1687,6 @@ exports[`BudgetAlertsStack Snapshot Tests (Normalized) matches snapshot for sibl
             "Organization.Id",
           ],
         },
-        "SourceArn": {
-          "Fn::Join": [
-            "",
-            [
-              "arn:",
-              {
-                "Ref": "AWS::Partition",
-              },
-              ":cloudformation:*:*:stack/*/*",
-            ],
-          ],
-        },
       },
       "Type": "AWS::Lambda::Permission",
     },
@@ -1793,6 +1785,14 @@ exports[`BudgetAlertsStack Snapshot Tests (Normalized) matches snapshot for sibl
         "ManagedExecution": {
           "Active": true,
         },
+        "Parameters": [
+          {
+            "ParameterKey": "delegatedAdminAccountId",
+            "ParameterValue": {
+              "Ref": "AWS::AccountId",
+            },
+          },
+        ],
         "PermissionModel": "SERVICE_MANAGED",
         "StackInstancesGroup": [
           {
@@ -1811,7 +1811,7 @@ exports[`BudgetAlertsStack Snapshot Tests (Normalized) matches snapshot for sibl
         ],
         "StackSetName": "SnapshotTestStackBudgetAlertStackSetdev4313E270",
         "TemplateURL": {
-          "Fn::Sub": "https://s3.\${AWS::Region}.\${AWS::URLSuffix}/cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}/b5a5c4a2516d8e0589f15c0453e5295f307a9f5c734f9e5ad1614214c0647f69.json",
+          "Fn::Sub": "https://s3.\${AWS::Region}.\${AWS::URLSuffix}/cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}/3a7454e0a344f071fb20d7feda5ec1b323846302f41a35e040fe94d5e5129229.json",
         },
       },
       "Type": "AWS::CloudFormation::StackSet",
@@ -1834,6 +1834,14 @@ exports[`BudgetAlertsStack Snapshot Tests (Normalized) matches snapshot for sibl
         "ManagedExecution": {
           "Active": true,
         },
+        "Parameters": [
+          {
+            "ParameterKey": "delegatedAdminAccountId",
+            "ParameterValue": {
+              "Ref": "AWS::AccountId",
+            },
+          },
+        ],
         "PermissionModel": "SERVICE_MANAGED",
         "StackInstancesGroup": [
           {
@@ -1852,7 +1860,7 @@ exports[`BudgetAlertsStack Snapshot Tests (Normalized) matches snapshot for sibl
         ],
         "StackSetName": "SnapshotTestStackBudgetAlertStackSetprodD0A9C4EE",
         "TemplateURL": {
-          "Fn::Sub": "https://s3.\${AWS::Region}.\${AWS::URLSuffix}/cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}/93f8952ad01f2303e7b4f0b03a1db5babf21019d60a4676f8ecbbbf0b8986614.json",
+          "Fn::Sub": "https://s3.\${AWS::Region}.\${AWS::URLSuffix}/cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}/1657947698fc2af1b208595ed00acfb029e861077a5458946cebb3e846be98d4.json",
         },
       },
       "Type": "AWS::CloudFormation::StackSet",
