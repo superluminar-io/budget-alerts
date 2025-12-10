@@ -2,6 +2,7 @@ import type { StackProps } from 'aws-cdk-lib';
 import {
   Arn,
   ArnFormat,
+  CfnParameter,
   CustomResource,
   Stack,
   aws_budgets as budgets,
