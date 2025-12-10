@@ -188,7 +188,6 @@ export function isCompatibleWith(a: unknown, b: unknown): boolean {
   if (!isEffectiveBudget(a) || !isEffectiveBudget(b)) {
     return false;
   }
-  console.log(`Comparing effective budgets: ${JSON.stringify(a)} vs ${JSON.stringify(b)}`);
   if (!b.amount) {
     return true; // b has no budget, so compatible with anything
   }
