@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 // lib/org/budget-planner.ts
 
-import { DISABLED_CURRENCY, type Thresholds, type BudgetConfig } from './budget-config';
+import { type Thresholds, type BudgetConfig } from './budget-config';
 
 export interface OuNode {
   id: string;
@@ -15,11 +15,29 @@ export interface OuBudgetAttachment {
   thresholds?: Thresholds;
 }
 
-export interface EffectiveBudget {
-  amount?: number;
+//export interface EffectiveBudget {
+//amount?: number;
+//currency: string;
+//thresholds?: Thresholds;
+//}
+
+// This is the "enabled" shape you already effectively use today
+export interface EffectiveBudgetOn {
+  mode: 'on';
+  amount: number;
   currency: string;
   thresholds?: Thresholds;
 }
+
+// Disabled is its own state. No currency sentinel.
+export interface EffectiveBudgetOff {
+  mode: 'off';
+}
+
+export type EffectiveBudget = EffectiveBudgetOn | EffectiveBudgetOff;
+
+export const isBudgetOff = (b: EffectiveBudget): b is EffectiveBudgetOff => b.mode === 'off';
+export const isBudgetOn = (b: EffectiveBudget): b is EffectiveBudgetOn => b.mode === 'on';
 
 export interface OuTree {
   byId: Map<string, OuNode>;
@@ -62,6 +80,14 @@ export function validateBudgetConfig(config: BudgetConfig, knownOus: string[]) {
       if (!entry) {
         throw new Error(`Budget config for OU ${ouId} is undefined`);
       }
+      if (entry.off === true) {
+        if (entry.amount !== null)
+          throw new Error(`OU ${ouId}: off=true cannot be combined with amount`);
+        if (entry.currency !== undefined)
+          throw new Error(`OU ${ouId}: off=true cannot be combined with currency`);
+        if (entry.thresholds !== undefined)
+          throw new Error(`OU ${ouId}: off=true cannot be combined with thresholds`);
+      }
 
       if (!knownOus.includes(ouId)) {
         throw new Error(`Budget config refers to unknown OU: ${ouId}`);
@@ -101,9 +127,10 @@ export function computeEffectiveBudgets(
     if (!config.organizationalUnits) {
       // No per-OU config at all: use global default
       const eb: EffectiveBudget = {
-        amount: config.default.amount,
+        mode: 'on',
+        amount: config.default.amount!,
         currency: config.default.currency,
-        thresholds: config.default.thresholds,
+        thresholds: config.default.thresholds!,
       };
       result.set(ouId, eb);
       return eb;
@@ -112,16 +139,17 @@ export function computeEffectiveBudgets(
 
     if (cfgEntry?.amount) {
       const eb: EffectiveBudget = {
+        mode: 'on',
         amount: cfgEntry.amount,
         currency: cfgEntry.currency ?? config.default.currency,
-        thresholds: cfgEntry.thresholds ?? config.default.thresholds,
+        thresholds: cfgEntry.thresholds ?? config.default.thresholds!,
       };
       result.set(ouId, eb);
       return eb;
     } else {
-      if (cfgEntry?.amount === null) {
+      if (cfgEntry?.off) {
         // Explicitly disabled budget
-        const eb: EffectiveBudget = { currency: DISABLED_CURRENCY }; // currency is irrelevant here
+        const eb: EffectiveBudget = { mode: 'off' };
         result.set(ouId, eb);
         return eb;
       }
@@ -135,9 +163,10 @@ export function computeEffectiveBudgets(
 
     // Top-level OU with no explicit config: use global default
     const eb: EffectiveBudget = {
-      amount: config.default.amount,
+      mode: 'on',
+      amount: config.default.amount!,
       currency: config.default.currency,
-      thresholds: config.default.thresholds,
+      thresholds: config.default.thresholds!,
     };
     result.set(ouId, eb);
     return eb;
@@ -188,16 +217,25 @@ export function isCompatibleWith(a: unknown, b: unknown): boolean {
   if (!isEffectiveBudget(a) || !isEffectiveBudget(b)) {
     return false;
   }
-  if (!b.amount) {
-    return true; // b has no budget, so compatible with anything
+  if (a.mode !== b.mode) {
+    return false;
   }
-  const arrayEqual = <T>(a: readonly T[], b: readonly T[]) =>
-    a.length === b.length && a.every((v, i) => v === b[i]);
-  return (
-    a.amount === b.amount &&
-    a.currency === b.currency &&
-    arrayEqual(a.thresholds ?? [], b.thresholds ?? [])
-  );
+  if (a.mode === 'off' && b.mode === 'off') {
+    return true; // both disabled, compatible
+  }
+  if (a.mode === 'on' && b.mode === 'on') {
+    if (!b.amount) {
+      return true; // b has no budget, so compatible with anything
+    }
+    const arrayEqual = <T>(a: readonly T[], b: readonly T[]) =>
+      a.length === b.length && a.every((v, i) => v === b[i]);
+    return (
+      a.amount === b.amount &&
+      a.currency === b.currency &&
+      arrayEqual(a.thresholds ?? [], b.thresholds ?? [])
+    );
+  }
+  return false;
 }
 
 export function computeHomogeneousSubtrees(
@@ -331,7 +369,7 @@ export function selectOuBudgetAttachments(
 
     if (canCoverSubtree && !ancestorSelected) {
       const budget = effectiveBudgets.get(ouId)!;
-      if (budget.amount && budget.amount > 0) {
+      if (budget.mode == 'on' && budget.amount && budget.amount > 0) {
         attachments.push({
           ouId,
           amount: budget.amount,

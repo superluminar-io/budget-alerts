@@ -1,6 +1,8 @@
 import {
   computeEffectiveBudgets,
   computeOuBudgetAttachments,
+  EffectiveBudget,
+  type EffectiveBudgetOn,
 } from '../../../lib/org/budget-planner';
 import { makeConfig, treeFrom } from '../../helpers/ouTree';
 import { DEFAULT_THRESHOLDS } from '../../../lib/org/budget-config';
@@ -20,9 +22,9 @@ describe('computeEffectiveBudgets - no default', () => {
 
     const eff = computeEffectiveBudgets(tree, config);
 
-    expect(eff.get('r')?.amount).toBeUndefined();
-    expect(eff.get('ou-a')?.amount).toBeUndefined();
-    expect(eff.get('ou-b')?.amount).toBeUndefined();
+    expect((eff.get('r') as EffectiveBudgetOn).amount).toBeUndefined();
+    expect((eff.get('ou-a') as EffectiveBudgetOn).amount).toBeUndefined();
+    expect((eff.get('ou-b') as EffectiveBudgetOn).amount).toBeUndefined();
   });
 
   test('no default + override sets budget => budget propagates to descendants', () => {
@@ -41,15 +43,17 @@ describe('computeEffectiveBudgets - no default', () => {
 
     const eff = computeEffectiveBudgets(tree, config);
 
-    expect(eff.get('r')?.amount).toBeUndefined();
-    expect(eff.get('ou-x')?.amount).toBeUndefined();
+    expect((eff.get('r') as EffectiveBudgetOn).amount).toBeUndefined();
+    expect((eff.get('ou-x') as EffectiveBudgetOn).amount).toBeUndefined();
 
     expect(eff.get('ou-a')).toEqual({
+      mode: 'on',
       amount: 123,
       currency: 'EUR',
       thresholds: DEFAULT_THRESHOLDS,
     });
     expect(eff.get('ou-b')).toEqual({
+      mode: 'on',
       amount: 123,
       currency: 'EUR',
       thresholds: DEFAULT_THRESHOLDS,
@@ -70,8 +74,8 @@ describe('computeEffectiveBudgets - no default', () => {
 
     const eff = computeEffectiveBudgets(tree, config);
 
-    expect(eff.get('r')?.amount).toBeUndefined();
-    expect(eff.get('ou-a')?.amount).toBeUndefined();
+    expect((eff.get('r') as EffectiveBudgetOn).amount).toBeUndefined();
+    expect((eff.get('ou-a') as EffectiveBudgetOn).amount).toBeUndefined();
   });
 });
 
@@ -89,14 +93,13 @@ describe('computeOuBudgetAttachments - no default', () => {
     expect(attachments).toEqual([]);
   });
 
-  xtest('no default + budgeted subtree + disabled child => attachments avoid disabled area', () => {
+  test('no default + budgeted subtree + disabled child => attachments avoid disabled area', () => {
     // r
     //  └─ ou-a (100 EUR)
     //      ├─ ou-b (disabled)
     //      └─ ou-c (inherits 100 EUR)
     const ous = [
-      { id: 'r', parentId: null },
-      { id: 'ou-a', parentId: 'r' },
+      { id: 'ou-a', parentId: null },
       { id: 'ou-b', parentId: 'ou-a' },
       { id: 'ou-c', parentId: 'ou-a' },
     ];
@@ -105,6 +108,7 @@ describe('computeOuBudgetAttachments - no default', () => {
       organizationalUnits: {
         'ou-a': { amount: 100, currency: 'EUR' },
         'ou-b': { amount: null }, // disable subtree
+        'ou-c': { amount: null, off: true }, // inherits
       },
     });
 
@@ -113,9 +117,10 @@ describe('computeOuBudgetAttachments - no default', () => {
     // The exact output depends on your homogeneous-subtree selection,
     // but it MUST NOT attach at ou-a (would hit ou-b).
     // It SHOULD attach at ou-c (or whatever minimal disjoint OUs cover only budgeted leaves).
+    expect(attachments.find((a) => a.ouId === 'ou-a')).toBeUndefined();
     expect(attachments).toEqual([
       {
-        ouId: 'ou-c',
+        ouId: 'ou-b',
         amount: 100,
         currency: 'EUR',
         thresholds: DEFAULT_THRESHOLDS,

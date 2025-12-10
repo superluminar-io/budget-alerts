@@ -94,11 +94,10 @@ export function sanitizeBudgetConfig(
   // loop over organizationalUnits and fill in missing fields
   if (sanitized.organizationalUnits) {
     for (const [ouId, entry] of Object.entries(sanitized.organizationalUnits)) {
-      if (!entry) {
+      if (!entry || entry.off === true) {
         sanitized.organizationalUnits[ouId] = {
+          off: true,
           amount: null,
-          currency: DISABLED_CURRENCY,
-          thresholds: DEFAULT_THRESHOLDS,
         };
         continue;
       }
