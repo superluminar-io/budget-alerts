@@ -38,7 +38,7 @@ export function buildOuTree(ous: OuNode[]): OuTree {
   const roots: string[] = [];
 
   for (const ou of ous) {
-    if (!ou.id) throw new Error(`OU with empty id found: ${JSON.stringify(ou)}`);
+    if (!ou.id) continue; // skip invalid OUs
     byId.set(ou.id, ou);
 
     if (ou.parentId === null) {
