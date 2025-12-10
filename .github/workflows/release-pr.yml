@@ -31,10 +31,6 @@ jobs:
           node-version: "24"
           cache: npm
 
-      - name: Install
-        run: npm ci
-
-      # Optional: you can skip build/test here and rely on required PR checks.
       - name: Configure git
         run: |
           git config user.name "github-actions[bot]"
