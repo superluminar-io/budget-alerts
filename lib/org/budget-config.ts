@@ -20,6 +20,12 @@ export interface OuBudgetConfigEntry {
    * If omitted, the default thresholds ([75, 100]) will be used.
    */
   thresholds?: Thresholds;
+
+  /**
+   * If true, this ou will not have a budget attached
+   * If not specified, defaults to false
+   */
+  off?: boolean; // if true, budget is disabled for this OU
 }
 
 export interface BudgetConfig {

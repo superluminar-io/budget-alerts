@@ -17,17 +17,8 @@ export function makeConfig(input: {
 }): BudgetConfig {
   const organizationalUnits = input.organizationalUnits ?? {};
 
-  if (input.default) {
-    // default is present
-    return sanitizeBudgetConfig({
-      default: input.default,
-      organizationalUnits,
-    });
-  }
-
-  // default omitted entirely
   return sanitizeBudgetConfig({
-    default: undefined,
+    default: input.default,
     organizationalUnits,
   });
 }
