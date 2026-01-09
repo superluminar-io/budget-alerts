@@ -15,11 +15,6 @@ export interface OuBudgetAttachment {
   thresholds?: Thresholds;
 }
 
-//export interface EffectiveBudget {
-//amount?: number;
-//currency: string;
-//thresholds?: Thresholds;
-//}
 
 // This is the "enabled" shape you already effectively use today
 export interface EffectiveBudgetOn {
@@ -369,7 +364,7 @@ export function selectOuBudgetAttachments(
 
     if (canCoverSubtree && !ancestorSelected) {
       const budget = effectiveBudgets.get(ouId)!;
-      if (budget.mode == 'on' && budget.amount && budget.amount > 0) {
+      if (budget.mode === 'on' && budget.amount && budget.amount > 0) {
         attachments.push({
           ouId,
           amount: budget.amount,

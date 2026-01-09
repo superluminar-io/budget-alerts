@@ -1,7 +1,6 @@
 import {
   computeEffectiveBudgets,
   computeOuBudgetAttachments,
-  EffectiveBudget,
   type EffectiveBudgetOn,
 } from '../../../lib/org/budget-planner';
 import { makeConfig, treeFrom } from '../../helpers/ouTree';
