@@ -15,7 +15,6 @@ export interface OuBudgetAttachment {
   thresholds?: Thresholds;
 }
 
-
 // This is the "enabled" shape you already effectively use today
 export interface EffectiveBudgetOn {
   mode: 'on';
