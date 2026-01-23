@@ -13,6 +13,7 @@ export interface OuBudgetAttachment {
   amount: number;
   currency: string;
   thresholds?: Thresholds;
+  notifySns?: boolean;
 }
 
 // This is the "enabled" shape you already effectively use today
