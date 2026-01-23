@@ -56,6 +56,14 @@ function isNullableBudgetConfig(
     if (typeof currency !== 'string') {
       return false;
     }
+
+    //
+    //Step 4: Validate default.aggregationSnsTopicArn
+    //
+    const snsTopicArn = (def as Record<string, unknown>).aggregationSnsTopicArn;
+    if (snsTopicArn && typeof snsTopicArn !== 'string') {
+      return false;
+    }
   }
 
   //
@@ -67,6 +75,10 @@ function isNullableBudgetConfig(
       return false;
     }
   }
+
+  //
+  // Step 5: Validate sns topic arn in default
+  //
 
   // We intentionally do not validate entries here
   return true;
