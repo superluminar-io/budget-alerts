@@ -26,6 +26,13 @@ export interface OuBudgetConfigEntry {
    * If not specified, defaults to false
    */
   off?: boolean; // if true, budget is disabled for this OU
+
+  /**
+   * Optionally enable SNS topic for budget notifications for this OU.
+   * If you want aggregation to a single SNS topic, also set aggregationSnsTopicArn in the default config.
+   * Useful when you want to integrate Amazon Chatsbot with your budget notifications.
+   */
+  aggregationSnsTopicArn?: boolean | null;
 }
 
 export interface BudgetConfig {
@@ -33,6 +40,7 @@ export interface BudgetConfig {
     amount?: number;
     currency: string;
     thresholds?: Thresholds;
+    aggregationSnsTopicArn?: string;
   };
 
   /**

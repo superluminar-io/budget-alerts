@@ -10,6 +10,8 @@ import {
   aws_iam as iam,
   aws_lambda as lambda,
   aws_s3 as s3,
+  aws_sns as sns,
+  aws_sns_subscriptions as subscriptions,
 } from 'aws-cdk-lib';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import type { StackSetStackProps } from 'cdk-stacksets';
@@ -29,6 +31,7 @@ import {
 } from './org/budget-planner';
 import { type BudgetConfig } from './org/budget-config';
 import { AwsCustomResource } from 'aws-cdk-lib/custom-resources';
+import { config } from 'node:process';
 
 export interface BudgetAlertsStackProps extends StackProps {
   orgOus: OuNode[];
@@ -97,6 +100,20 @@ export class BudgetAlertsStack extends Stack {
       }),
     );
 
+    if (props.budgetConfig.default.aggregationSnsTopicArn) {
+      const notificationFn = new NodejsFunction(this, 'GlobalBudgetNotificationHandler', {
+        functionName: 'GlobalBudgetNotificationHandlerFn',
+      });
+
+      const aggregationTopic = sns.Topic.fromTopicArn(
+        this,
+        'AggregationTopic',
+        props.budgetConfig.default.aggregationSnsTopicArn,
+      );
+
+      aggregationTopic.grantPublish(notificationFn);
+    }
+
     // Attachments are already filtered for valid amounts in computeOuBudgetAttachments.
 
     attachments.forEach((attachment) => {
@@ -112,23 +129,41 @@ export class BudgetAlertsStack extends Stack {
             assetBucketPrefix: assetBucketPrefix,
             delegatedAdminAccountId: Stack.of(this).account,
             budget: attachment,
+            globalNotificationLambda: null,
           }),
         ),
         deploymentType: DeploymentType.serviceManaged(),
         capabilities: [Capability.NAMED_IAM],
         parameters: {
-          delegatedAdminAccountId: Stack.of(this).account,
+          DelegatedAdminAccountId: Stack.of(this).account,
         },
       });
       alertStackSet.node.addDependency(assetBucket);
       alertStackSet.node.addDependency(permissions);
     });
+
+    if (props.budgetConfig.default.aggregationSnsTopicArn) {
+      new iam.Role(this, 'BudgetSNSPublishRole', {
+        assumedBy: new iam.OrganizationPrincipal(orgId),
+        inlinePolicies: {
+          PublishToSNS: new iam.PolicyDocument({
+            statements: [
+              new iam.PolicyStatement({
+                actions: ['sns:Publish'],
+                resources: [props.budgetConfig.default.aggregationSnsTopicArn],
+              }),
+            ],
+          }),
+        },
+      });
+    }
   }
 }
 
 export interface BudgetAlertProps extends StackSetStackProps {
   delegatedAdminAccountId: string;
   budget: OuBudgetAttachment;
+  globalNotificationLambda: lambda.IFunction | null;
 }
 
 class BudgetAlert extends StackSetStack {
@@ -157,6 +192,23 @@ class BudgetAlert extends StackSetStack {
     });
     const accountEmail = emailLookup.getAttString('Email');
 
+    const notificationTopic = new sns.Topic(this, 'BudgetNotificationTopic', {
+      topicName: `BudgetAlertsTopic-${this.account}`,
+    });
+
+    const subscribers = [
+      {
+        subscriptionType: 'EMAIL',
+        address: accountEmail,
+      },
+    ];
+    if (props.budget.notifySns) {
+      subscribers.push({
+        subscriptionType: 'SNS',
+        address: notificationTopic.topicArn,
+      });
+    }
+
     new budgets.CfnBudget(this, 'MonthlyBudget', {
       budget: {
         budgetType: 'COST',
@@ -182,13 +234,12 @@ class BudgetAlert extends StackSetStack {
             threshold: threshold,
             thresholdType: 'PERCENTAGE',
           },
-          subscribers: [
-            {
-              subscriptionType: 'EMAIL',
-              address: accountEmail,
-            },
-          ],
+          subscribers,
         })) ?? [],
     });
+
+    if (props.globalNotificationLambda) {
+      topic.addSubscription(new subscriptions.LambdaSubscription(props.globalNotificationLambda));
+    }
   }
 }
