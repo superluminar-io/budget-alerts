@@ -31,7 +31,6 @@ import {
 } from './org/budget-planner';
 import { type BudgetConfig } from './org/budget-config';
 import { AwsCustomResource } from 'aws-cdk-lib/custom-resources';
-import { config } from 'node:process';
 
 export interface BudgetAlertsStackProps extends StackProps {
   orgOus: OuNode[];
@@ -192,10 +191,6 @@ class BudgetAlert extends StackSetStack {
     });
     const accountEmail = emailLookup.getAttString('Email');
 
-    const notificationTopic = new sns.Topic(this, 'BudgetNotificationTopic', {
-      topicName: `BudgetAlertsTopic-${this.account}`,
-    });
-
     const subscribers = [
       {
         subscriptionType: 'EMAIL',
@@ -203,10 +198,19 @@ class BudgetAlert extends StackSetStack {
       },
     ];
     if (props.budget.notifySns) {
+      const notificationTopic = new sns.Topic(this, 'BudgetNotificationTopic', {
+        topicName: `BudgetAlertsTopic-${this.account}`,
+      });
+
       subscribers.push({
         subscriptionType: 'SNS',
         address: notificationTopic.topicArn,
       });
+      if (props.globalNotificationLambda) {
+        notificationTopic.addSubscription(
+          new subscriptions.LambdaSubscription(props.globalNotificationLambda),
+        );
+      }
     }
 
     new budgets.CfnBudget(this, 'MonthlyBudget', {
@@ -237,9 +241,5 @@ class BudgetAlert extends StackSetStack {
           subscribers,
         })) ?? [],
     });
-
-    if (props.globalNotificationLambda) {
-      topic.addSubscription(new subscriptions.LambdaSubscription(props.globalNotificationLambda));
-    }
   }
 }

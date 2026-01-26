@@ -180,7 +180,7 @@ exports[`BudgetAlertsStack Snapshot Tests (Normalized) matches snapshot for a si
         },
         "Parameters": [
           {
-            "ParameterKey": "delegatedAdminAccountId",
+            "ParameterKey": "DelegatedAdminAccountId",
             "ParameterValue": {
               "Ref": "AWS::AccountId",
             },
@@ -683,7 +683,7 @@ exports[`BudgetAlertsStack Snapshot Tests (Normalized) matches snapshot for over
         },
         "Parameters": [
           {
-            "ParameterKey": "delegatedAdminAccountId",
+            "ParameterKey": "DelegatedAdminAccountId",
             "ParameterValue": {
               "Ref": "AWS::AccountId",
             },
@@ -732,7 +732,7 @@ exports[`BudgetAlertsStack Snapshot Tests (Normalized) matches snapshot for over
         },
         "Parameters": [
           {
-            "ParameterKey": "delegatedAdminAccountId",
+            "ParameterKey": "DelegatedAdminAccountId",
             "ParameterValue": {
               "Ref": "AWS::AccountId",
             },
@@ -1235,7 +1235,7 @@ exports[`BudgetAlertsStack Snapshot Tests (Normalized) matches snapshot for over
         },
         "Parameters": [
           {
-            "ParameterKey": "delegatedAdminAccountId",
+            "ParameterKey": "DelegatedAdminAccountId",
             "ParameterValue": {
               "Ref": "AWS::AccountId",
             },
@@ -1284,7 +1284,7 @@ exports[`BudgetAlertsStack Snapshot Tests (Normalized) matches snapshot for over
         },
         "Parameters": [
           {
-            "ParameterKey": "delegatedAdminAccountId",
+            "ParameterKey": "DelegatedAdminAccountId",
             "ParameterValue": {
               "Ref": "AWS::AccountId",
             },
@@ -1787,7 +1787,7 @@ exports[`BudgetAlertsStack Snapshot Tests (Normalized) matches snapshot for sibl
         },
         "Parameters": [
           {
-            "ParameterKey": "delegatedAdminAccountId",
+            "ParameterKey": "DelegatedAdminAccountId",
             "ParameterValue": {
               "Ref": "AWS::AccountId",
             },
@@ -1836,7 +1836,7 @@ exports[`BudgetAlertsStack Snapshot Tests (Normalized) matches snapshot for sibl
         },
         "Parameters": [
           {
-            "ParameterKey": "delegatedAdminAccountId",
+            "ParameterKey": "DelegatedAdminAccountId",
             "ParameterValue": {
               "Ref": "AWS::AccountId",
             },
