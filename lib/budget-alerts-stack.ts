@@ -108,8 +108,7 @@ export class BudgetAlertsStack extends Stack {
         props.budgetConfig.default.aggregationSnsTopicArn,
       );
 
-      notificationFn = new NodejsFunction(this, 'GlobalBudgetNotificationHandler', {
-        functionName: 'GlobalBudgetNotificationHandlerFn',
+      notificationFn = new NodejsFunction(this, 'forward-sns-message', {
         environment: {
           TARGET_SNS_TOPIC_ARN: props.budgetConfig.default.aggregationSnsTopicArn,
         },
