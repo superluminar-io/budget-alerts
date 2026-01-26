@@ -13,23 +13,23 @@ log.setLevel('info');
  * @param context - Lambda context
  */
 export async function handler(event: SNSEvent, _context: Context): Promise<void> {
-  log.info('Received SNS event:', JSON.stringify(event, null, 2));
+  log.debug('Received SNS event:', JSON.stringify(event, null, 2));
 
-  const TARGET_SNS_TOPIC_ARN = process.env.TARGET_SNS_TOPIC_ARN;
+  const targetSnsTopicArn = process.env.TARGET_SNS_TOPIC_ARN;
 
-  if (!TARGET_SNS_TOPIC_ARN) {
+  if (!targetSnsTopicArn) {
     throw new Error('TARGET_SNS_TOPIC_ARN environment variable is not set');
   }
 
   // Process all SNS records in the event
   const publishPromises = event.Records.map((record: SNSEventRecord) =>
-    forwardMessage(record, TARGET_SNS_TOPIC_ARN),
+    forwardMessage(record, targetSnsTopicArn),
   );
 
   try {
     await Promise.all(publishPromises);
-    log.info(
-      `Successfully forwarded ${publishPromises.length} message(s) to ${TARGET_SNS_TOPIC_ARN}`,
+    log.debug(
+      `Successfully forwarded ${publishPromises.length} message(s) to ${targetSnsTopicArn}`,
     );
   } catch (error) {
     log.error('Error forwarding messages:', error);
@@ -45,7 +45,7 @@ export async function handler(event: SNSEvent, _context: Context): Promise<void>
 async function forwardMessage(record: SNSEventRecord, targetTopicArn: string): Promise<void> {
   const snsMessage = record.Sns;
 
-  log.info(`Forwarding message with ID: ${snsMessage.MessageId}`);
+  log.debug(`Forwarding message with ID: ${snsMessage.MessageId}`);
 
   // Convert SNS message attributes to the format expected by AWS SDK v3
   const messageAttributes: Record<string, MessageAttributeValue> = {};
@@ -65,7 +65,7 @@ async function forwardMessage(record: SNSEventRecord, targetTopicArn: string): P
 
   try {
     const response = await snsClient.send(publishCommand);
-    log.info(`Message forwarded successfully. New MessageId: ${response.MessageId}`);
+    log.debug(`Message forwarded successfully. New MessageId: ${response.MessageId}`);
   } catch (error) {
     log.error(`Failed to forward message ${snsMessage.MessageId}:`, error);
     throw error;

@@ -100,15 +100,18 @@ export class BudgetAlertsStack extends Stack {
     );
 
     if (props.budgetConfig.default.aggregationSnsTopicArn) {
-      const notificationFn = new NodejsFunction(this, 'GlobalBudgetNotificationHandler', {
-        functionName: 'GlobalBudgetNotificationHandlerFn',
-      });
-
       const aggregationTopic = sns.Topic.fromTopicArn(
         this,
         'AggregationTopic',
         props.budgetConfig.default.aggregationSnsTopicArn,
       );
+
+      const notificationFn = new NodejsFunction(this, 'GlobalBudgetNotificationHandler', {
+        functionName: 'GlobalBudgetNotificationHandlerFn',
+        environment: {
+          TARGET_SNS_TOPIC_ARN: props.budgetConfig.default.aggregationSnsTopicArn,
+        },
+      });
 
       aggregationTopic.grantPublish(notificationFn);
     }
