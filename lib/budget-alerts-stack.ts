@@ -99,6 +99,8 @@ export class BudgetAlertsStack extends Stack {
       }),
     );
 
+    let notificationFn: lambda.IFunction | null = null;
+
     if (props.budgetConfig.default.aggregationSnsTopicArn) {
       const aggregationTopic = sns.Topic.fromTopicArn(
         this,
@@ -106,7 +108,7 @@ export class BudgetAlertsStack extends Stack {
         props.budgetConfig.default.aggregationSnsTopicArn,
       );
 
-      const notificationFn = new NodejsFunction(this, 'GlobalBudgetNotificationHandler', {
+      notificationFn = new NodejsFunction(this, 'GlobalBudgetNotificationHandler', {
         functionName: 'GlobalBudgetNotificationHandlerFn',
         environment: {
           TARGET_SNS_TOPIC_ARN: props.budgetConfig.default.aggregationSnsTopicArn,
@@ -131,7 +133,7 @@ export class BudgetAlertsStack extends Stack {
             assetBucketPrefix: assetBucketPrefix,
             delegatedAdminAccountId: Stack.of(this).account,
             budget: attachment,
-            globalNotificationLambda: null,
+            globalNotificationLambda: notificationFn,
           }),
         ),
         deploymentType: DeploymentType.serviceManaged(),
