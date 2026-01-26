@@ -32,7 +32,7 @@ export interface OuBudgetConfigEntry {
    * If you want aggregation to a single SNS topic, also set aggregationSnsTopicArn in the default config.
    * Useful when you want to integrate Amazon Chatsbot with your budget notifications.
    */
-  aggregationSnsTopicArn?: boolean | null;
+  aggregationSnsTopicArn?: string | null;
 }
 
 export interface BudgetConfig {
