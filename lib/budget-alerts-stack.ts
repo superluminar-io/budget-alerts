@@ -12,6 +12,9 @@ import {
   aws_s3 as s3,
   aws_sns as sns,
   aws_sns_subscriptions as subscriptions,
+  aws_sqs as sqs,
+  Duration,
+  PhysicalName,
 } from 'aws-cdk-lib';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import type { StackSetStackProps } from 'cdk-stacksets';
@@ -99,22 +102,20 @@ export class BudgetAlertsStack extends Stack {
       }),
     );
 
-    let notificationFn: lambda.IFunction | null = null;
+    let notificationQueue: sqs.IQueue | undefined;
 
     if (props.budgetConfig.default.aggregationSnsTopicArn) {
-      const aggregationTopic = sns.Topic.fromTopicArn(
-        this,
-        'AggregationTopic',
-        props.budgetConfig.default.aggregationSnsTopicArn,
-      );
-
-      notificationFn = new NodejsFunction(this, 'forward-sns-message', {
-        environment: {
-          TARGET_SNS_TOPIC_ARN: props.budgetConfig.default.aggregationSnsTopicArn,
-        },
+      notificationQueue = new sqs.Queue(this, 'BudgetAggregationQueue', {
+        queueName: PhysicalName.GENERATE_IF_NEEDED,
+        visibilityTimeout: Duration.seconds(300),
       });
-
-      aggregationTopic.grantPublish(notificationFn);
+      notificationQueue.addToResourcePolicy(
+        new iam.PolicyStatement({
+          actions: ['sqs:SendMessage'],
+          resources: [notificationQueue.queueArn],
+          principals: [new iam.OrganizationPrincipal(orgId)],
+        }),
+      );
     }
 
     // Attachments are already filtered for valid amounts in computeOuBudgetAttachments.
@@ -132,7 +133,7 @@ export class BudgetAlertsStack extends Stack {
             assetBucketPrefix: assetBucketPrefix,
             delegatedAdminAccountId: Stack.of(this).account,
             budget: attachment,
-            globalNotificationLambda: notificationFn,
+            globalNotificationSQSQueueARN: notificationQueue?.queueArn,
           }),
         ),
         deploymentType: DeploymentType.serviceManaged(),
@@ -166,12 +167,13 @@ export class BudgetAlertsStack extends Stack {
 export interface BudgetAlertProps extends StackSetStackProps {
   delegatedAdminAccountId: string;
   budget: OuBudgetAttachment;
-  globalNotificationLambda: lambda.IFunction | null;
+  globalNotificationSQSQueueARN?: string;
 }
 
 class BudgetAlert extends StackSetStack {
   constructor(scope: Construct, id: string, props: BudgetAlertProps) {
     super(scope, id, props);
+
     const delegatedAdminAccountIdParam = new CfnParameter(this, 'DelegatedAdminAccountId', {
       type: 'String',
       description: 'Account ID of the StackSet administrator/delegated admin account',
@@ -201,20 +203,21 @@ class BudgetAlert extends StackSetStack {
         address: accountEmail,
       },
     ];
-    if (props.budget.notifySns) {
+    if (props.globalNotificationSQSQueueARN) {
       const notificationTopic = new sns.Topic(this, 'BudgetNotificationTopic', {
-        topicName: `BudgetAlertsTopic-${this.account}`,
+        topicName: 'budget-alerts',
       });
 
       subscribers.push({
         subscriptionType: 'SNS',
         address: notificationTopic.topicArn,
       });
-      if (props.globalNotificationLambda) {
-        notificationTopic.addSubscription(
-          new subscriptions.LambdaSubscription(props.globalNotificationLambda),
-        );
-      }
+
+      notificationTopic.addSubscription(
+        new subscriptions.SqsSubscription(
+          sqs.Queue.fromQueueArn(this, 'NotificationQueue', props.globalNotificationSQSQueueARN),
+        ),
+      );
     }
 
     new budgets.CfnBudget(this, 'MonthlyBudget', {
