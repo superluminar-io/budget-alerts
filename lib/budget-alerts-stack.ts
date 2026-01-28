@@ -212,6 +212,18 @@ class BudgetAlert extends StackSetStack {
         subscriptionType: 'SNS',
         address: notificationTopic.topicArn,
       });
+      notificationTopic.addToResourcePolicy(
+        new iam.PolicyStatement({
+          actions: ['sns:Subscribe'],
+          resources: [notificationTopic.topicArn],
+          principals: [new iam.ServicePrincipal('sqs.amazonaws.com')],
+          conditions: {
+            PrincipalOrgID: {
+              StringEquals: delegatedAdminAccountId,
+            },
+          },
+        }),
+      );
 
       notificationTopic.addSubscription(
         new subscriptions.SqsSubscription(
