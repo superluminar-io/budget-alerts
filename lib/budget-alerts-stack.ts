@@ -216,6 +216,9 @@ class BudgetAlert extends StackSetStack {
       notificationTopic.addSubscription(
         new subscriptions.SqsSubscription(
           sqs.Queue.fromQueueArn(this, 'NotificationQueue', props.globalNotificationSQSQueueARN),
+          {
+            rawMessageDelivery: false,
+          },
         ),
       );
     }
