@@ -2,7 +2,8 @@
 import { handler } from '../../lib/budget-alerts-stack.forward-sns-message';
 import { SNSClient, PublishCommand } from '@aws-sdk/client-sns';
 import { mockClient } from 'aws-sdk-client-mock';
-import type { SNSEvent, Context } from 'aws-lambda';
+import type { Context, SQSEvent } from 'aws-lambda';
+import { sqsEvent, type SqsEventRecordInput } from '../helpers/wrapped-events';
 
 const snsMock = mockClient(SNSClient);
 
@@ -35,72 +36,79 @@ describe('forward-sns-message Lambda', () => {
     succeed: () => {},
   });
 
-  const createSNSEvent = (messageCount = 1): SNSEvent => {
-    const records = [];
-    for (let i = 0; i < messageCount; i++) {
-      records.push({
-        EventVersion: '1.0',
-        EventSubscriptionArn: 'arn:aws:sns:us-east-1:123456789012:source-topic:subscription-id',
-        EventSource: 'aws:sns',
-        Sns: {
-          SignatureVersion: '1',
-          Timestamp: '2024-01-01T00:00:00.000Z',
-          Signature: 'test-signature',
-          SigningCertUrl: 'https://sns.us-east-1.amazonaws.com/cert.pem',
-          MessageId: `message-id-${i}`,
-          Message: `Test message ${i}`,
-          MessageAttributes: {
-            attribute1: {
-              Type: 'String',
-              Value: 'value1',
-            },
-            attribute2: {
-              Type: 'Number',
-              Value: '123',
-            },
-          },
-          Type: 'Notification',
-          UnsubscribeUrl: 'https://sns.us-east-1.amazonaws.com/unsubscribe',
-          TopicArn: 'arn:aws:sns:us-east-1:123456789012:source-topic',
-          Subject: `Test Subject ${i}`,
+  const createDefaultSQSEvent = (messageCount = 1): SQSEvent => {
+    return sqsEvent(
+      ...Array.from(
+        { length: messageCount },
+        (_, i) =>
+          ({
+            type: 'Notification',
+            topicArn: `arn:aws:sns:us-east-1:123456789012:source-topic-${i}`,
+          }) as SqsEventRecordInput,
+      ),
+    );
+  };
+
+  const exampleEvent = {
+    Records: [
+      {
+        messageId: '27fa4149-99e0-44cd-9caa-4b58263b30e3',
+        receiptHandle:
+          'AQEBvGRGKAPLqUjOS3bEg1ZZ0cz/Sz5NA+r5E/R3CEif0OruvDbd/On29JNHnwvzVRqWBFZoPd27R8DVeqvYyZ6G+zH7ZB0mg5v9RuraZdY34/dLD7dSmSMlQpzmi8lTGodLe/k+wRTjsEGRYs9jkaKtsx937+6b+rYIE4aT5ZzQK16eiux7AVFVBWcaBUdvHENvwGqu5iLodzOHiF/9hv6v5YbZMarM+KVwXObDeXt4QuVJVVA6eptTjoxck0Zi47f4i3Pq7n3fxNCYecTZ22wccsw/v1UW2/jxMJvSTu+Q4iIdW+68sqBU5gxCo+F8Fye5mFXTtiNSKgrdlGTMSlP94/eM6Q3jD/IN7vYPztV6s4Pq6CcAJUDZqUWjWpZfaWB6',
+        body: '{\n "Type" : "Notification",\n "MessageId" : "d7eac51f-e9b1-5584-b17f-a4ec13707c7d",\n "TopicArn" : "arn:aws:sns:eu-west-1:391613010373:budget-alerts",\n "Subject" : "AWS Budgets: test has exceeded your alert threshold",\n "Message" : "AWS Budget Notification January 28, 2026\\nAWS Account 391613010373\\n\\nDear AWS Customer,\\n\\nYou requested that we alert you when the FORECASTED Cost associated with your test budget is greater than $0.00 for the current month. The FORECASTED Cost associated with this budget is $0.95. You can find additional details below and by accessing the AWS Budgets dashboard [1].\\n\\nBudget Name: test\\nBudget Type: Cost\\nBudgeted Amount: $0.02\\nAlert Type: FORECASTED\\nAlert Threshold: > $0.00\\nFORECASTED Amount: $0.95\\n\\n[1] https://console.aws.amazon.com/costmanagement/home#/budgets\\n",\n "Timestamp" : "2026-01-28T11:52:33.584Z",\n "SignatureVersion" : "1",\n "Signature" : "E6D5lCzdLmEwGIEYgjyV0mD2jLS9L5sE8rWH5vgNlusFVmeFhcB760/AzXUAr0Rv6RPON4DML0KaRJkoRpcRCs4Z1xPVNAEguolF9pWy05b+C0zy8jX17lydqN4GYRuqFhrn8xnkSyWquAlfjjtKyR6G7MdLwmcaejnFOVdtftjSOrH8l7YMU2z494GpDbn4c1TnCxm4wKZ5jsJmkIMoQQZSX7RGQ4Y1ydP0mMhMkSB9Sc4Y7rSlBqomB1Tm5Q0P1M+aJ24qZ35knV0GuJ8Ho+Bj1slG9w6JzZyBXwLQWymh+h43jz8s+XysJIkkr2s1Utz3OaFsUc6GDFdRnuyL3w==",\n "SigningCertURL" : "https://sns.eu-west-1.amazonaws.com/SimpleNotificationService-7506a1e35b36ef5a444dd1a8e7cc3ed8.pem",\n "UnsubscribeURL" : "https://sns.eu-west-1.amazonaws.com/?Action=Unsubscribe&SubscriptionArn=arn:aws:sns:eu-west-1:391613010373:budget-alerts:56c1b69b-5fd3-4751-8452-f15e03766be2"\n}',
+        attributes: {
+          ApproximateReceiveCount: '1',
+          AWSTraceHeader:
+            'Root=1-6979f881-f94f7eb49ae7be2706852902;Parent=57e7173ed78c191f;Sampled=0;Lineage=1:271d0be9:0',
+          SentTimestamp: '1769601153617',
+          SenderId: 'AIDAISMY7JYY5F7RTT6AO',
+          ApproximateFirstReceiveTimestamp: '1769601153631',
         },
-      });
-    }
-    return { Records: records };
+        messageAttributes: {},
+        md5OfBody: 'add587d4631d758c912dad947c4a49d6',
+        eventSource: 'aws:sqs',
+        eventSourceARN: 'arn:aws:sqs:eu-west-1:391613010373:test',
+        awsRegion: 'eu-west-1',
+      },
+    ],
   };
 
   describe('successful message forwarding', () => {
     it('should forward a single SNS message to the target topic', async () => {
       snsMock.on(PublishCommand).resolves({ MessageId: 'new-message-id' });
 
-      const event = createSNSEvent(1);
       const context = createMockContext();
 
-      await handler(event, context);
+      await handler(exampleEvent, context);
 
       expect(snsMock.calls()).toHaveLength(1);
       const call = snsMock.call(0);
-      expect(call.args[0].input).toEqual({
+      expect(call.args[0].input).toMatchObject({
         TopicArn: TARGET_TOPIC_ARN,
-        Message: 'Test message 0',
-        Subject: 'Test Subject 0',
-        MessageAttributes: {
-          attribute1: {
-            DataType: 'String',
-            StringValue: 'value1',
-          },
-          attribute2: {
-            DataType: 'Number',
-            StringValue: '123',
-          },
-        },
+        Subject: 'AWS Budgets: test has exceeded your alert threshold',
+        Message: `AWS Budget Notification January 28, 2026
+AWS Account 391613010373
+
+Dear AWS Customer,
+
+You requested that we alert you when the FORECASTED Cost associated with your test budget is greater than $0.00 for the current month. The FORECASTED Cost associated with this budget is $0.95. You can find additional details below and by accessing the AWS Budgets dashboard [1].
+
+Budget Name: test
+Budget Type: Cost
+Budgeted Amount: $0.02
+Alert Type: FORECASTED
+Alert Threshold: > $0.00
+FORECASTED Amount: $0.95
+
+[1] https://console.aws.amazon.com/costmanagement/home#/budgets
+`,
       });
     });
 
     it('should forward multiple SNS messages in parallel', async () => {
       snsMock.on(PublishCommand).resolves({ MessageId: 'new-message-id' });
 
-      const event = createSNSEvent(3);
+      const event = createDefaultSQSEvent(3);
       const context = createMockContext();
 
       await handler(event, context);
@@ -110,71 +118,29 @@ describe('forward-sns-message Lambda', () => {
         const call = snsMock.call(i);
         expect(call.args[0].input).toMatchObject({
           TopicArn: TARGET_TOPIC_ARN,
-          Message: `Test message ${i}`,
-          Subject: `Test Subject ${i}`,
+
+          Subject: `AWS Budgets: Budget threshold exceeded`,
         });
       }
-    });
-
-    it('should handle messages without a subject', async () => {
-      snsMock.on(PublishCommand).resolves({ MessageId: 'new-message-id' });
-
-      const event = createSNSEvent(1);
-      delete event.Records[0].Sns.Subject;
-      const context = createMockContext();
-
-      await handler(event, context);
-
-      expect(snsMock.calls()).toHaveLength(1);
-      const call = snsMock.call(0);
-      expect(call.args[0].input).toMatchObject({
-        TopicArn: TARGET_TOPIC_ARN,
-        Message: 'Test message 0',
-        Subject: undefined,
-      });
-    });
-
-    it('should handle messages with empty MessageAttributes', async () => {
-      snsMock.on(PublishCommand).resolves({ MessageId: 'new-message-id' });
-
-      const event = createSNSEvent(1);
-      event.Records[0].Sns.MessageAttributes = {};
-      const context = createMockContext();
-
-      await handler(event, context);
-
-      expect(snsMock.calls()).toHaveLength(1);
-      const call = snsMock.call(0);
-      expect(call.args[0].input).toMatchObject({
-        TopicArn: TARGET_TOPIC_ARN,
-        Message: 'Test message 0',
-        MessageAttributes: {},
-      });
     });
   });
 
   describe('error handling', () => {
     it('should throw error when TARGET_SNS_TOPIC_ARN is not set', async () => {
       delete process.env.TARGET_SNS_TOPIC_ARN;
-
-      const event = createSNSEvent(1);
+      const event = createDefaultSQSEvent(1);
       const context = createMockContext();
-
       await expect(handler(event, context)).rejects.toThrow(
         'TARGET_SNS_TOPIC_ARN environment variable is not set',
       );
-
       expect(snsMock.calls()).toHaveLength(0);
     });
 
     it('should throw error when SNS publish fails', async () => {
       snsMock.on(PublishCommand).rejects(new Error('SNS publish failed'));
-
-      const event = createSNSEvent(1);
+      const event = createDefaultSQSEvent(1);
       const context = createMockContext();
-
       await expect(handler(event, context)).rejects.toThrow('SNS publish failed');
-
       expect(snsMock.calls()).toHaveLength(1);
     });
 
@@ -184,57 +150,10 @@ describe('forward-sns-message Lambda', () => {
         .resolvesOnce({ MessageId: 'success-1' })
         .rejectsOnce(new Error('Failed message'))
         .resolvesOnce({ MessageId: 'success-3' });
-
-      const event = createSNSEvent(3);
+      const event = createDefaultSQSEvent(3);
       const context = createMockContext();
-
       await expect(handler(event, context)).rejects.toThrow('Failed message');
-
       expect(snsMock.calls()).toHaveLength(3);
-    });
-  });
-
-  describe('message attribute conversion', () => {
-    it('should correctly convert different message attribute types', async () => {
-      snsMock.on(PublishCommand).resolves({ MessageId: 'new-message-id' });
-
-      const event = createSNSEvent(1);
-      event.Records[0].Sns.MessageAttributes = {
-        stringAttr: {
-          Type: 'String',
-          Value: 'test-string',
-        },
-        numberAttr: {
-          Type: 'Number',
-          Value: '42',
-        },
-        binaryAttr: {
-          Type: 'Binary',
-          Value: 'dGVzdA==',
-        },
-      };
-
-      const context = createMockContext();
-      await handler(event, context);
-
-      expect(snsMock.calls()).toHaveLength(1);
-      const call = snsMock.call(0);
-      // Cast to PublishCommand to access the input
-      const command = call.args[0] as PublishCommand;
-      expect(command.input.MessageAttributes).toEqual({
-        stringAttr: {
-          DataType: 'String',
-          StringValue: 'test-string',
-        },
-        numberAttr: {
-          DataType: 'Number',
-          StringValue: '42',
-        },
-        binaryAttr: {
-          DataType: 'Binary',
-          StringValue: 'dGVzdA==',
-        },
-      });
     });
   });
 });
