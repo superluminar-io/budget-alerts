@@ -9,6 +9,8 @@ import {
   custom_resources as cr,
   aws_iam as iam,
   aws_lambda as lambda,
+  aws_lambda_event_sources as eventSources,
+  aws_lambda_nodejs as lambdaNodejs,
   aws_s3 as s3,
   aws_sns as sns,
   aws_sns_subscriptions as subscriptions,
@@ -112,8 +114,37 @@ export class BudgetAlertsStack extends Stack {
       notificationQueue.addToResourcePolicy(
         new iam.PolicyStatement({
           actions: ['sqs:SendMessage'],
-          resources: [notificationQueue.queueArn],
-          principals: [new iam.OrganizationPrincipal(orgId)],
+          resources: ['*'],
+          principals: [new iam.ServicePrincipal('sns.amazonaws.com')],
+          conditions: {
+            ArnEquals: {
+              'aws:PrincipalOrgID': orgId,
+            },
+          },
+        }),
+      );
+
+      const forwarder = new lambdaNodejs.NodejsFunction(this, 'forward-sns-message', {});
+      forwarder.addEventSource(
+        new eventSources.SqsEventSource(notificationQueue, {
+          batchSize: 10,
+        }),
+      );
+      forwarder.addToRolePolicy(
+        new iam.PolicyStatement({
+          actions: ['sns:Publish'],
+          resources: [props.budgetConfig.default.aggregationSnsTopicArn],
+        }),
+      );
+      forwarder.addToRolePolicy(
+        new iam.PolicyStatement({
+          actions: ['sns:ConfirmSubscription'],
+          conditions: {
+            StringEquals: {
+              'aws:PrincipalOrgID': orgId,
+            },
+          },
+          resources: ['*'],
         }),
       );
     }
@@ -214,12 +245,15 @@ class BudgetAlert extends StackSetStack {
       });
       notificationTopic.addToResourcePolicy(
         new iam.PolicyStatement({
-          actions: ['sns:Subscribe'],
+          actions: ['sns:Publish'],
           resources: [notificationTopic.topicArn],
-          principals: [new iam.ServicePrincipal('sqs.amazonaws.com')],
+          principals: [new iam.ServicePrincipal('budgets.amazonaws.com')],
           conditions: {
-            PrincipalOrgID: {
-              StringEquals: delegatedAdminAccountId,
+            ArnLike: {
+              'aws:SourceArn': `arn:${this.partition}:budgets::${this.account}:*`,
+            },
+            StringEquals: {
+              'aws:SourceAccount': this.account,
             },
           },
         }),
