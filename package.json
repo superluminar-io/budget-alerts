@@ -48,8 +48,8 @@
     "typescript-eslint": "^8.53.0"
   },
   "dependencies": {
-    "@aws-sdk/client-controltower": "^3.971.0",
-    "@aws-sdk/client-organizations": "^3.971.0",
+    "@aws-sdk/client-controltower": "^3.987.0",
+    "@aws-sdk/client-organizations": "^3.987.0",
     "@aws-sdk/util-arn-parser": "^3.968.0",
     "aws-cdk-lib": "2.235.0",
     "cdk-stacksets": "^0.0.152",
