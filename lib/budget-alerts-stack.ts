@@ -7,7 +7,9 @@ import {
   Stack,
   aws_budgets as budgets,
   custom_resources as cr,
+  type aws_cloudformation as cfn,
   aws_iam as iam,
+  aws_kms as kms,
   aws_lambda as lambda,
   aws_lambda_event_sources as eventSources,
   aws_lambda_nodejs as lambdaNodejs,
@@ -19,7 +21,7 @@ import {
   PhysicalName,
 } from 'aws-cdk-lib';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
-import type { StackSetStackProps } from 'cdk-stacksets';
+import type { StackSetParameter, StackSetStackProps } from 'cdk-stacksets';
 import {
   Capability,
   DeploymentType,
@@ -105,11 +107,26 @@ export class BudgetAlertsStack extends Stack {
     );
 
     let notificationQueue: sqs.IQueue | undefined;
+    let encryptionKey: kms.IKey | undefined;
+    let notificationSettings: TopicSettings | undefined;
+    let forwarder: lambdaNodejs.NodejsFunction | undefined;
 
     if (props.budgetConfig.default.aggregationSnsTopicArn) {
+      encryptionKey = new kms.Key(this, 'BudgetAggregationQueueKey', {
+        enableKeyRotation: true,
+      });
+      encryptionKey.addToResourcePolicy(
+        new iam.PolicyStatement({
+          actions: ['kms:GenerateDataKey', 'kms:Encrypt'],
+          resources: ['*'],
+          principals: [new iam.OrganizationPrincipal(orgId)],
+        }),
+      );
       notificationQueue = new sqs.Queue(this, 'BudgetAggregationQueue', {
         queueName: PhysicalName.GENERATE_IF_NEEDED,
         visibilityTimeout: Duration.seconds(300),
+        encryption: sqs.QueueEncryption.KMS,
+        encryptionMasterKey: encryptionKey,
       });
       notificationQueue.addToResourcePolicy(
         new iam.PolicyStatement({
@@ -124,7 +141,7 @@ export class BudgetAlertsStack extends Stack {
         }),
       );
 
-      const forwarder = new lambdaNodejs.NodejsFunction(this, 'forward-sns-message', {});
+      forwarder = new lambdaNodejs.NodejsFunction(this, 'forward-sns-message', {});
       forwarder.addEventSource(
         new eventSources.SqsEventSource(notificationQueue, {
           batchSize: 10,
@@ -147,6 +164,11 @@ export class BudgetAlertsStack extends Stack {
           resources: ['*'],
         }),
       );
+      encryptionKey.grantEncryptDecrypt(forwarder);
+
+      notificationSettings = {
+        globalNotificationQueueArn: notificationQueue.queueArn,
+      };
     }
 
     // Attachments are already filtered for valid amounts in computeOuBudgetAttachments.
@@ -156,6 +178,10 @@ export class BudgetAlertsStack extends Stack {
         organizationalUnits: [attachment.ouId],
         regions: [this.region],
       });
+
+      const parameters = {
+        BudgetAggregationQueueKeyArn: encryptionKey ? encryptionKey.keyArn : '',
+      } as StackSetParameter;
       const alertStackSet = new StackSet(this, `BudgetAlertStackSet-${attachment.ouId}`, {
         target,
         template: StackSetTemplate.fromStackSetStack(
@@ -164,17 +190,27 @@ export class BudgetAlertsStack extends Stack {
             assetBucketPrefix: assetBucketPrefix,
             delegatedAdminAccountId: Stack.of(this).account,
             budget: attachment,
-            globalNotificationSQSQueueARN: notificationQueue?.queueArn,
+            notificationSettings,
           }),
         ),
         deploymentType: DeploymentType.serviceManaged(),
         capabilities: [Capability.NAMED_IAM],
         parameters: {
+          ...parameters,
           DelegatedAdminAccountId: Stack.of(this).account,
         },
       });
+      // need escape hatch here to set the concurrency mode
+      (alertStackSet.node.defaultChild as cfn.CfnStackSet).operationPreferences = {
+        concurrencyMode: 'SOFT_FAILURE_TOLERANCE',
+        maxConcurrentCount: 20,
+        failureToleranceCount: 20,
+      };
       alertStackSet.node.addDependency(assetBucket);
       alertStackSet.node.addDependency(permissions);
+      if (forwarder) {
+        alertStackSet.node.addDependency(forwarder);
+      }
     });
 
     if (props.budgetConfig.default.aggregationSnsTopicArn) {
@@ -195,15 +231,22 @@ export class BudgetAlertsStack extends Stack {
   }
 }
 
+export interface TopicSettings {
+  globalNotificationQueueArn: string;
+}
+
 export interface BudgetAlertProps extends StackSetStackProps {
   delegatedAdminAccountId: string;
   budget: OuBudgetAttachment;
-  globalNotificationSQSQueueARN?: string;
+  notificationSettings?: TopicSettings;
 }
 
 class BudgetAlert extends StackSetStack {
   constructor(scope: Construct, id: string, props: BudgetAlertProps) {
     super(scope, id, props);
+    const keyArnParam = new CfnParameter(this, 'BudgetAggregationQueueKeyArn', {
+      type: 'String',
+    });
 
     const delegatedAdminAccountIdParam = new CfnParameter(this, 'DelegatedAdminAccountId', {
       type: 'String',
@@ -234,9 +277,11 @@ class BudgetAlert extends StackSetStack {
         address: accountEmail,
       },
     ];
-    if (props.globalNotificationSQSQueueARN) {
+    if (props.notificationSettings) {
+      const encryptionKey = kms.Key.fromKeyArn(this, 'ImportedKey', keyArnParam.valueAsString);
       const notificationTopic = new sns.Topic(this, 'BudgetNotificationTopic', {
         topicName: 'budget-alerts',
+        masterKey: encryptionKey,
       });
 
       subscribers.push({
@@ -253,7 +298,19 @@ class BudgetAlert extends StackSetStack {
               'aws:SourceArn': `arn:${this.partition}:budgets::${this.account}:*`,
             },
             StringEquals: {
-              'aws:SourceAccount': this.account,
+              'aws:SourceAccount': delegatedAdminAccountId,
+            },
+          },
+        }),
+      );
+      notificationTopic.addToResourcePolicy(
+        new iam.PolicyStatement({
+          actions: ['sns:Subscribe'],
+          resources: [notificationTopic.topicArn],
+          principals: [new iam.ServicePrincipal('sqs.amazonaws.com')],
+          conditions: {
+            StringEquals: {
+              'aws:SourceAccount': delegatedAdminAccountId,
             },
           },
         }),
@@ -261,7 +318,11 @@ class BudgetAlert extends StackSetStack {
 
       notificationTopic.addSubscription(
         new subscriptions.SqsSubscription(
-          sqs.Queue.fromQueueArn(this, 'NotificationQueue', props.globalNotificationSQSQueueARN),
+          sqs.Queue.fromQueueArn(
+            this,
+            'NotificationQueue',
+            props.notificationSettings.globalNotificationQueueArn,
+          ),
           {
             rawMessageDelivery: false,
           },
