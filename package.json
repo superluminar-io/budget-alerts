@@ -53,6 +53,7 @@
     "@aws-sdk/client-controltower": "^3.946.0",
     "@aws-sdk/client-organizations": "^3.946.0",
     "@aws-sdk/client-sns": "^3.974.0",
+    "@aws-sdk/client-sqs": "^3.987.0",
     "@aws-sdk/util-arn-parser": "^3.893.0",
     "aws-cdk-lib": "2.232.1",
     "cdk-stacksets": "^0.0.152",
