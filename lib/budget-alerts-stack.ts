@@ -83,7 +83,7 @@ export class BudgetAlertsStack extends Stack {
         resources: ['*'],
       }),
     );
-
+    //
     // Allow CloudFormation from *your org* (or specific accounts) to invoke this Lambda
     const permissions = new lambda.CfnPermission(this, 'AllowOrgCfnInvoke', {
       action: 'lambda:InvokeFunction',
@@ -92,6 +92,34 @@ export class BudgetAlertsStack extends Stack {
       principalOrgId: orgId,
     });
     permissions.node.addDependency(provider);
+
+    const subscribeSqsFn = new NodejsFunction(this, 'subscribe-sqs', {
+      functionName: 'SubscribeSqsFn',
+    });
+
+    const subscribeProviderName = 'SubscribeSqsProviderFn';
+    const subscribeProvider = new cr.Provider(this, 'SubscribeSqsProvider', {
+      onEventHandler: subscribeSqsFn,
+      providerFunctionName: subscribeProviderName,
+    });
+
+    subscribeProvider.onEventHandler.addPermission('Invoke', {
+      principal: new iam.OrganizationPrincipal(orgId),
+    });
+
+    subscribeSqsFn.addToRolePolicy(
+      new iam.PolicyStatement({
+        actions: ['sns:Subscribe'],
+        resources: ['*'],
+      }),
+    );
+    const subscribeFnPermissions = new lambda.CfnPermission(this, 'SubscriptionProviderAllowOrgCfnInvoke', {
+      action: 'lambda:InvokeFunction',
+      functionName: subscribeProviderName,
+      principal: '*',
+      principalOrgId: orgId,
+    });
+    subscribeFnPermissions.node.addDependency(subscribeProvider);
 
     const assetBucketPrefix = 'budget-alerts-stackset-assets';
     const assetBucket = new s3.Bucket(this, 'Assets', {
@@ -128,14 +156,25 @@ export class BudgetAlertsStack extends Stack {
         encryption: sqs.QueueEncryption.KMS,
         encryptionMasterKey: encryptionKey,
       });
+      subscribeSqsFn.addEnvironment('QUEUE_ARN', notificationQueue.queueArn);
       notificationQueue.addToResourcePolicy(
         new iam.PolicyStatement({
           actions: ['sqs:SendMessage'],
           resources: ['*'],
           principals: [new iam.ServicePrincipal('sns.amazonaws.com')],
           conditions: {
-            ArnEquals: {
+            StringEquals: {
               'aws:PrincipalOrgID': orgId,
+            },
+            ArnLike: {
+              'aws:SourceArn': Arn.format({
+                region: this.region,
+                service: 'sns',
+                resource: 'budget-alerts',
+                account: '*',
+                partition: this.partition,
+                arnFormat: ArnFormat.NO_RESOURCE_NAME,
+              }),
             },
           },
         }),
@@ -208,6 +247,7 @@ export class BudgetAlertsStack extends Stack {
       };
       alertStackSet.node.addDependency(assetBucket);
       alertStackSet.node.addDependency(permissions);
+      alertStackSet.node.addDependency(subscribeProvider);
       if (forwarder) {
         alertStackSet.node.addDependency(forwarder);
       }
@@ -307,27 +347,26 @@ class BudgetAlert extends StackSetStack {
         new iam.PolicyStatement({
           actions: ['sns:Subscribe'],
           resources: [notificationTopic.topicArn],
-          principals: [new iam.ServicePrincipal('sqs.amazonaws.com')],
-          conditions: {
-            StringEquals: {
-              'aws:SourceAccount': delegatedAdminAccountId,
-            },
-          },
+          principals: [new iam.AccountPrincipal(delegatedAdminAccountId)],
         }),
       );
 
-      notificationTopic.addSubscription(
-        new subscriptions.SqsSubscription(
-          sqs.Queue.fromQueueArn(
-            this,
-            'NotificationQueue',
-            props.notificationSettings.globalNotificationQueueArn,
-          ),
-          {
-            rawMessageDelivery: false,
-          },
-        ),
-      );
+      new CustomResource(this, 'SubscribeSqsToTopic', {
+        serviceToken: Arn.format({
+          region: this.region,
+          service: 'lambda',
+          resource: 'function',
+          resourceName: 'SubscribeSqsProviderFn',
+          account: delegatedAdminAccountId,
+          arnFormat: ArnFormat.COLON_RESOURCE_NAME,
+          partition: this.partition,
+        }),
+        properties: {
+          topicName: notificationTopic.topicName,
+          accountId: this.account,
+          region: this.region,
+        },
+      });
     }
 
     new budgets.CfnBudget(this, 'MonthlyBudget', {
