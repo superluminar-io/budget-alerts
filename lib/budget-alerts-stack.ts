@@ -167,13 +167,16 @@ export class BudgetAlertsStack extends Stack {
               'aws:PrincipalOrgID': orgId,
             },
             ArnLike: {
+              // Must match the *topic ARN* exactly. Previously this used ArnFormat.NO_RESOURCE_NAME,
+              // which produces `arn:...:sns:region:*:budget-alerts` and does NOT match real SNS topic
+              // ARNs (`arn:...:sns:region:account:budget-alerts`). A mismatch here leaves the
+              // subscription in PendingConfirmation / prevents delivery.
               'aws:SourceArn': Arn.format({
                 region: this.region,
                 service: 'sns',
                 resource: 'budget-alerts',
                 account: '*',
                 partition: this.partition,
-                arnFormat: ArnFormat.NO_RESOURCE_NAME,
               }),
             },
           },
