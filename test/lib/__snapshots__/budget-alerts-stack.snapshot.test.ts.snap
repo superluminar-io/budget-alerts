@@ -165,6 +165,9 @@ exports[`BudgetAlertsStack Snapshot Tests (Normalized) matches snapshot for a si
         "AllowOrgCfnInvoke",
         "AssetsPolicy206C37E3",
         "Assets9A31D427",
+        "SubscribeSqsProviderframeworkonEvent63640083",
+        "SubscribeSqsProviderframeworkonEventServiceRoleDefaultPolicy9DF88961",
+        "SubscribeSqsProviderframeworkonEventServiceRoleB899F04A",
       ],
       "Properties": {
         "AutoDeployment": {
@@ -178,7 +181,16 @@ exports[`BudgetAlertsStack Snapshot Tests (Normalized) matches snapshot for a si
         "ManagedExecution": {
           "Active": true,
         },
+        "OperationPreferences": {
+          "ConcurrencyMode": "SOFT_FAILURE_TOLERANCE",
+          "FailureToleranceCount": 20,
+          "MaxConcurrentCount": 20,
+        },
         "Parameters": [
+          {
+            "ParameterKey": "BudgetAggregationQueueKeyArn",
+            "ParameterValue": "",
+          },
           {
             "ParameterKey": "DelegatedAdminAccountId",
             "ParameterValue": {
@@ -204,7 +216,7 @@ exports[`BudgetAlertsStack Snapshot Tests (Normalized) matches snapshot for a si
         ],
         "StackSetName": "SnapshotTestStackBudgetAlertStackSetprodD0A9C4EE",
         "TemplateURL": {
-          "Fn::Sub": "https://s3.\${AWS::Region}.\${AWS::URLSuffix}/cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}/1657947698fc2af1b208595ed00acfb029e861077a5458946cebb3e846be98d4.json",
+          "Fn::Sub": "https://s3.\${AWS::Region}.\${AWS::URLSuffix}/cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}/47ebbe3a2ed256a4eebe1e8c854fef81a3fd8a06e25b81f2d82589237c34de1a.json",
         },
       },
       "Type": "AWS::CloudFormation::StackSet",
@@ -372,6 +384,148 @@ exports[`BudgetAlertsStack Snapshot Tests (Normalized) matches snapshot for a si
       },
       "Type": "AWS::IAM::Policy",
     },
+    "SubscribeSqsProviderframeworkonEvent63640083": {
+      "DependsOn": [
+        "SubscribeSqsProviderframeworkonEventServiceRoleDefaultPolicy9DF88961",
+        "SubscribeSqsProviderframeworkonEventServiceRoleB899F04A",
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "S3Key": "<asset-hash-stripped>",
+        },
+        "Description": "AWS CDK resource provider framework - onEvent (SnapshotTestStack/SubscribeSqsProvider)",
+        "Environment": {
+          "Variables": {
+            "USER_ON_EVENT_FUNCTION_ARN": {
+              "Fn::GetAtt": [
+                "subscribesqs871B5DAF",
+                "Arn",
+              ],
+            },
+          },
+        },
+        "FunctionName": "SubscribeSqsProviderFn",
+        "Handler": "framework.onEvent",
+        "LoggingConfig": {
+          "ApplicationLogLevel": "FATAL",
+          "LogFormat": "JSON",
+        },
+        "Role": {
+          "Fn::GetAtt": [
+            "SubscribeSqsProviderframeworkonEventServiceRoleB899F04A",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs22.x",
+        "Timeout": 900,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "SubscribeSqsProviderframeworkonEventServiceRoleB899F04A": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "SubscribeSqsProviderframeworkonEventServiceRoleDefaultPolicy9DF88961": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": "lambda:InvokeFunction",
+              "Effect": "Allow",
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
+                    "subscribesqs871B5DAF",
+                    "Arn",
+                  ],
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      {
+                        "Fn::GetAtt": [
+                          "subscribesqs871B5DAF",
+                          "Arn",
+                        ],
+                      },
+                      ":*",
+                    ],
+                  ],
+                },
+              ],
+            },
+            {
+              "Action": "lambda:GetFunction",
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::GetAtt": [
+                  "subscribesqs871B5DAF",
+                  "Arn",
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "SubscribeSqsProviderframeworkonEventServiceRoleDefaultPolicy9DF88961",
+        "Roles": [
+          {
+            "Ref": "SubscribeSqsProviderframeworkonEventServiceRoleB899F04A",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "SubscriptionProviderAllowOrgCfnInvoke": {
+      "DependsOn": [
+        "SubscribeSqsProviderframeworkonEvent63640083",
+        "SubscribeSqsProviderframeworkonEventServiceRoleDefaultPolicy9DF88961",
+        "SubscribeSqsProviderframeworkonEventServiceRoleB899F04A",
+      ],
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": "SubscribeSqsProviderFn",
+        "Principal": "*",
+        "PrincipalOrgID": {
+          "Fn::GetAtt": [
+            "GetOrgId54A03B77",
+            "Organization.Id",
+          ],
+        },
+      },
+      "Type": "AWS::Lambda::Permission",
+    },
     "getmailA50FFCE5": {
       "DependsOn": [
         "getmailServiceRoleDefaultPolicyD2623720",
@@ -471,6 +625,106 @@ exports[`BudgetAlertsStack Snapshot Tests (Normalized) matches snapshot for a si
         ],
       },
       "Type": "AWS::IAM::Policy",
+    },
+    "subscribesqs871B5DAF": {
+      "DependsOn": [
+        "subscribesqsServiceRoleDefaultPolicyF6EDA496",
+        "subscribesqsServiceRoleF514CE34",
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "S3Key": "<asset-hash-stripped>",
+        },
+        "Environment": {
+          "Variables": {
+            "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1",
+          },
+        },
+        "FunctionName": "SubscribeSqsFn",
+        "Handler": "index.handler",
+        "Role": {
+          "Fn::GetAtt": [
+            "subscribesqsServiceRoleF514CE34",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs16.x",
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "subscribesqsInvokeF5CCE0AD": {
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "subscribesqs871B5DAF",
+            "Arn",
+          ],
+        },
+        "Principal": "*",
+        "PrincipalOrgID": {
+          "Fn::GetAtt": [
+            "GetOrgId54A03B77",
+            "Organization.Id",
+          ],
+        },
+      },
+      "Type": "AWS::Lambda::Permission",
+    },
+    "subscribesqsServiceRoleDefaultPolicyF6EDA496": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sns:Subscribe",
+              "Effect": "Allow",
+              "Resource": "*",
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "subscribesqsServiceRoleDefaultPolicyF6EDA496",
+        "Roles": [
+          {
+            "Ref": "subscribesqsServiceRoleF514CE34",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "subscribesqsServiceRoleF514CE34": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
     },
   },
   "Rules": {
@@ -668,6 +922,9 @@ exports[`BudgetAlertsStack Snapshot Tests (Normalized) matches snapshot for over
         "AllowOrgCfnInvoke",
         "AssetsPolicy206C37E3",
         "Assets9A31D427",
+        "SubscribeSqsProviderframeworkonEvent63640083",
+        "SubscribeSqsProviderframeworkonEventServiceRoleDefaultPolicy9DF88961",
+        "SubscribeSqsProviderframeworkonEventServiceRoleB899F04A",
       ],
       "Properties": {
         "AutoDeployment": {
@@ -681,7 +938,16 @@ exports[`BudgetAlertsStack Snapshot Tests (Normalized) matches snapshot for over
         "ManagedExecution": {
           "Active": true,
         },
+        "OperationPreferences": {
+          "ConcurrencyMode": "SOFT_FAILURE_TOLERANCE",
+          "FailureToleranceCount": 20,
+          "MaxConcurrentCount": 20,
+        },
         "Parameters": [
+          {
+            "ParameterKey": "BudgetAggregationQueueKeyArn",
+            "ParameterValue": "",
+          },
           {
             "ParameterKey": "DelegatedAdminAccountId",
             "ParameterValue": {
@@ -707,7 +973,7 @@ exports[`BudgetAlertsStack Snapshot Tests (Normalized) matches snapshot for over
         ],
         "StackSetName": "SnapshotTestStackBudgetAlertStackSetaccounting0AA9FC10",
         "TemplateURL": {
-          "Fn::Sub": "https://s3.\${AWS::Region}.\${AWS::URLSuffix}/cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}/3a7454e0a344f071fb20d7feda5ec1b323846302f41a35e040fe94d5e5129229.json",
+          "Fn::Sub": "https://s3.\${AWS::Region}.\${AWS::URLSuffix}/cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}/37680ac61d60b500963ca1fef7f2fa7381cbbcb686cbd24307372f0eb23802ff.json",
         },
       },
       "Type": "AWS::CloudFormation::StackSet",
@@ -717,6 +983,9 @@ exports[`BudgetAlertsStack Snapshot Tests (Normalized) matches snapshot for over
         "AllowOrgCfnInvoke",
         "AssetsPolicy206C37E3",
         "Assets9A31D427",
+        "SubscribeSqsProviderframeworkonEvent63640083",
+        "SubscribeSqsProviderframeworkonEventServiceRoleDefaultPolicy9DF88961",
+        "SubscribeSqsProviderframeworkonEventServiceRoleB899F04A",
       ],
       "Properties": {
         "AutoDeployment": {
@@ -730,7 +999,16 @@ exports[`BudgetAlertsStack Snapshot Tests (Normalized) matches snapshot for over
         "ManagedExecution": {
           "Active": true,
         },
+        "OperationPreferences": {
+          "ConcurrencyMode": "SOFT_FAILURE_TOLERANCE",
+          "FailureToleranceCount": 20,
+          "MaxConcurrentCount": 20,
+        },
         "Parameters": [
+          {
+            "ParameterKey": "BudgetAggregationQueueKeyArn",
+            "ParameterValue": "",
+          },
           {
             "ParameterKey": "DelegatedAdminAccountId",
             "ParameterValue": {
@@ -756,7 +1034,7 @@ exports[`BudgetAlertsStack Snapshot Tests (Normalized) matches snapshot for over
         ],
         "StackSetName": "SnapshotTestStackBudgetAlertStackSetpayroll0ECEEDFC",
         "TemplateURL": {
-          "Fn::Sub": "https://s3.\${AWS::Region}.\${AWS::URLSuffix}/cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}/00620b14698f0fdbe46f28bba631b0a2c48458899e9636c11426a0784f93daec.json",
+          "Fn::Sub": "https://s3.\${AWS::Region}.\${AWS::URLSuffix}/cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}/958205c09ba6a9dc61c642415287b2ae3a2c06cb06ad908e24a672b1f07b5bba.json",
         },
       },
       "Type": "AWS::CloudFormation::StackSet",
@@ -924,6 +1202,148 @@ exports[`BudgetAlertsStack Snapshot Tests (Normalized) matches snapshot for over
       },
       "Type": "AWS::IAM::Policy",
     },
+    "SubscribeSqsProviderframeworkonEvent63640083": {
+      "DependsOn": [
+        "SubscribeSqsProviderframeworkonEventServiceRoleDefaultPolicy9DF88961",
+        "SubscribeSqsProviderframeworkonEventServiceRoleB899F04A",
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "S3Key": "<asset-hash-stripped>",
+        },
+        "Description": "AWS CDK resource provider framework - onEvent (SnapshotTestStack/SubscribeSqsProvider)",
+        "Environment": {
+          "Variables": {
+            "USER_ON_EVENT_FUNCTION_ARN": {
+              "Fn::GetAtt": [
+                "subscribesqs871B5DAF",
+                "Arn",
+              ],
+            },
+          },
+        },
+        "FunctionName": "SubscribeSqsProviderFn",
+        "Handler": "framework.onEvent",
+        "LoggingConfig": {
+          "ApplicationLogLevel": "FATAL",
+          "LogFormat": "JSON",
+        },
+        "Role": {
+          "Fn::GetAtt": [
+            "SubscribeSqsProviderframeworkonEventServiceRoleB899F04A",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs22.x",
+        "Timeout": 900,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "SubscribeSqsProviderframeworkonEventServiceRoleB899F04A": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "SubscribeSqsProviderframeworkonEventServiceRoleDefaultPolicy9DF88961": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": "lambda:InvokeFunction",
+              "Effect": "Allow",
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
+                    "subscribesqs871B5DAF",
+                    "Arn",
+                  ],
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      {
+                        "Fn::GetAtt": [
+                          "subscribesqs871B5DAF",
+                          "Arn",
+                        ],
+                      },
+                      ":*",
+                    ],
+                  ],
+                },
+              ],
+            },
+            {
+              "Action": "lambda:GetFunction",
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::GetAtt": [
+                  "subscribesqs871B5DAF",
+                  "Arn",
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "SubscribeSqsProviderframeworkonEventServiceRoleDefaultPolicy9DF88961",
+        "Roles": [
+          {
+            "Ref": "SubscribeSqsProviderframeworkonEventServiceRoleB899F04A",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "SubscriptionProviderAllowOrgCfnInvoke": {
+      "DependsOn": [
+        "SubscribeSqsProviderframeworkonEvent63640083",
+        "SubscribeSqsProviderframeworkonEventServiceRoleDefaultPolicy9DF88961",
+        "SubscribeSqsProviderframeworkonEventServiceRoleB899F04A",
+      ],
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": "SubscribeSqsProviderFn",
+        "Principal": "*",
+        "PrincipalOrgID": {
+          "Fn::GetAtt": [
+            "GetOrgId54A03B77",
+            "Organization.Id",
+          ],
+        },
+      },
+      "Type": "AWS::Lambda::Permission",
+    },
     "getmailA50FFCE5": {
       "DependsOn": [
         "getmailServiceRoleDefaultPolicyD2623720",
@@ -1023,6 +1443,106 @@ exports[`BudgetAlertsStack Snapshot Tests (Normalized) matches snapshot for over
         ],
       },
       "Type": "AWS::IAM::Policy",
+    },
+    "subscribesqs871B5DAF": {
+      "DependsOn": [
+        "subscribesqsServiceRoleDefaultPolicyF6EDA496",
+        "subscribesqsServiceRoleF514CE34",
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "S3Key": "<asset-hash-stripped>",
+        },
+        "Environment": {
+          "Variables": {
+            "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1",
+          },
+        },
+        "FunctionName": "SubscribeSqsFn",
+        "Handler": "index.handler",
+        "Role": {
+          "Fn::GetAtt": [
+            "subscribesqsServiceRoleF514CE34",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs16.x",
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "subscribesqsInvokeF5CCE0AD": {
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "subscribesqs871B5DAF",
+            "Arn",
+          ],
+        },
+        "Principal": "*",
+        "PrincipalOrgID": {
+          "Fn::GetAtt": [
+            "GetOrgId54A03B77",
+            "Organization.Id",
+          ],
+        },
+      },
+      "Type": "AWS::Lambda::Permission",
+    },
+    "subscribesqsServiceRoleDefaultPolicyF6EDA496": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sns:Subscribe",
+              "Effect": "Allow",
+              "Resource": "*",
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "subscribesqsServiceRoleDefaultPolicyF6EDA496",
+        "Roles": [
+          {
+            "Ref": "subscribesqsServiceRoleF514CE34",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "subscribesqsServiceRoleF514CE34": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
     },
   },
   "Rules": {
@@ -1220,6 +1740,9 @@ exports[`BudgetAlertsStack Snapshot Tests (Normalized) matches snapshot for over
         "AllowOrgCfnInvoke",
         "AssetsPolicy206C37E3",
         "Assets9A31D427",
+        "SubscribeSqsProviderframeworkonEvent63640083",
+        "SubscribeSqsProviderframeworkonEventServiceRoleDefaultPolicy9DF88961",
+        "SubscribeSqsProviderframeworkonEventServiceRoleB899F04A",
       ],
       "Properties": {
         "AutoDeployment": {
@@ -1233,7 +1756,16 @@ exports[`BudgetAlertsStack Snapshot Tests (Normalized) matches snapshot for over
         "ManagedExecution": {
           "Active": true,
         },
+        "OperationPreferences": {
+          "ConcurrencyMode": "SOFT_FAILURE_TOLERANCE",
+          "FailureToleranceCount": 20,
+          "MaxConcurrentCount": 20,
+        },
         "Parameters": [
+          {
+            "ParameterKey": "BudgetAggregationQueueKeyArn",
+            "ParameterValue": "",
+          },
           {
             "ParameterKey": "DelegatedAdminAccountId",
             "ParameterValue": {
@@ -1259,7 +1791,7 @@ exports[`BudgetAlertsStack Snapshot Tests (Normalized) matches snapshot for over
         ],
         "StackSetName": "SnapshotTestStackBudgetAlertStackSetaccounting0AA9FC10",
         "TemplateURL": {
-          "Fn::Sub": "https://s3.\${AWS::Region}.\${AWS::URLSuffix}/cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}/f4b1da6154d38210d37f7b6bbc202a9b56fab1f922b1b36d5505464b8d6fd0a8.json",
+          "Fn::Sub": "https://s3.\${AWS::Region}.\${AWS::URLSuffix}/cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}/ab1ff21efef6c58f88a929f5ef185b239da542e170d86107489ee5114c2c995d.json",
         },
       },
       "Type": "AWS::CloudFormation::StackSet",
@@ -1269,6 +1801,9 @@ exports[`BudgetAlertsStack Snapshot Tests (Normalized) matches snapshot for over
         "AllowOrgCfnInvoke",
         "AssetsPolicy206C37E3",
         "Assets9A31D427",
+        "SubscribeSqsProviderframeworkonEvent63640083",
+        "SubscribeSqsProviderframeworkonEventServiceRoleDefaultPolicy9DF88961",
+        "SubscribeSqsProviderframeworkonEventServiceRoleB899F04A",
       ],
       "Properties": {
         "AutoDeployment": {
@@ -1282,7 +1817,16 @@ exports[`BudgetAlertsStack Snapshot Tests (Normalized) matches snapshot for over
         "ManagedExecution": {
           "Active": true,
         },
+        "OperationPreferences": {
+          "ConcurrencyMode": "SOFT_FAILURE_TOLERANCE",
+          "FailureToleranceCount": 20,
+          "MaxConcurrentCount": 20,
+        },
         "Parameters": [
+          {
+            "ParameterKey": "BudgetAggregationQueueKeyArn",
+            "ParameterValue": "",
+          },
           {
             "ParameterKey": "DelegatedAdminAccountId",
             "ParameterValue": {
@@ -1308,7 +1852,7 @@ exports[`BudgetAlertsStack Snapshot Tests (Normalized) matches snapshot for over
         ],
         "StackSetName": "SnapshotTestStackBudgetAlertStackSetpayroll0ECEEDFC",
         "TemplateURL": {
-          "Fn::Sub": "https://s3.\${AWS::Region}.\${AWS::URLSuffix}/cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}/bf134450653c3097ff4ad7f22b86e876cfde1ccd2fa7e4758d5c1360e934a94f.json",
+          "Fn::Sub": "https://s3.\${AWS::Region}.\${AWS::URLSuffix}/cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}/798d864ff146fb7c759928b2d5a6faadf7e90ded6b52e5c4ae827d36cf12b0f3.json",
         },
       },
       "Type": "AWS::CloudFormation::StackSet",
@@ -1476,6 +2020,148 @@ exports[`BudgetAlertsStack Snapshot Tests (Normalized) matches snapshot for over
       },
       "Type": "AWS::IAM::Policy",
     },
+    "SubscribeSqsProviderframeworkonEvent63640083": {
+      "DependsOn": [
+        "SubscribeSqsProviderframeworkonEventServiceRoleDefaultPolicy9DF88961",
+        "SubscribeSqsProviderframeworkonEventServiceRoleB899F04A",
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "S3Key": "<asset-hash-stripped>",
+        },
+        "Description": "AWS CDK resource provider framework - onEvent (SnapshotTestStack/SubscribeSqsProvider)",
+        "Environment": {
+          "Variables": {
+            "USER_ON_EVENT_FUNCTION_ARN": {
+              "Fn::GetAtt": [
+                "subscribesqs871B5DAF",
+                "Arn",
+              ],
+            },
+          },
+        },
+        "FunctionName": "SubscribeSqsProviderFn",
+        "Handler": "framework.onEvent",
+        "LoggingConfig": {
+          "ApplicationLogLevel": "FATAL",
+          "LogFormat": "JSON",
+        },
+        "Role": {
+          "Fn::GetAtt": [
+            "SubscribeSqsProviderframeworkonEventServiceRoleB899F04A",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs22.x",
+        "Timeout": 900,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "SubscribeSqsProviderframeworkonEventServiceRoleB899F04A": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "SubscribeSqsProviderframeworkonEventServiceRoleDefaultPolicy9DF88961": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": "lambda:InvokeFunction",
+              "Effect": "Allow",
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
+                    "subscribesqs871B5DAF",
+                    "Arn",
+                  ],
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      {
+                        "Fn::GetAtt": [
+                          "subscribesqs871B5DAF",
+                          "Arn",
+                        ],
+                      },
+                      ":*",
+                    ],
+                  ],
+                },
+              ],
+            },
+            {
+              "Action": "lambda:GetFunction",
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::GetAtt": [
+                  "subscribesqs871B5DAF",
+                  "Arn",
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "SubscribeSqsProviderframeworkonEventServiceRoleDefaultPolicy9DF88961",
+        "Roles": [
+          {
+            "Ref": "SubscribeSqsProviderframeworkonEventServiceRoleB899F04A",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "SubscriptionProviderAllowOrgCfnInvoke": {
+      "DependsOn": [
+        "SubscribeSqsProviderframeworkonEvent63640083",
+        "SubscribeSqsProviderframeworkonEventServiceRoleDefaultPolicy9DF88961",
+        "SubscribeSqsProviderframeworkonEventServiceRoleB899F04A",
+      ],
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": "SubscribeSqsProviderFn",
+        "Principal": "*",
+        "PrincipalOrgID": {
+          "Fn::GetAtt": [
+            "GetOrgId54A03B77",
+            "Organization.Id",
+          ],
+        },
+      },
+      "Type": "AWS::Lambda::Permission",
+    },
     "getmailA50FFCE5": {
       "DependsOn": [
         "getmailServiceRoleDefaultPolicyD2623720",
@@ -1575,6 +2261,106 @@ exports[`BudgetAlertsStack Snapshot Tests (Normalized) matches snapshot for over
         ],
       },
       "Type": "AWS::IAM::Policy",
+    },
+    "subscribesqs871B5DAF": {
+      "DependsOn": [
+        "subscribesqsServiceRoleDefaultPolicyF6EDA496",
+        "subscribesqsServiceRoleF514CE34",
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "S3Key": "<asset-hash-stripped>",
+        },
+        "Environment": {
+          "Variables": {
+            "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1",
+          },
+        },
+        "FunctionName": "SubscribeSqsFn",
+        "Handler": "index.handler",
+        "Role": {
+          "Fn::GetAtt": [
+            "subscribesqsServiceRoleF514CE34",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs16.x",
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "subscribesqsInvokeF5CCE0AD": {
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "subscribesqs871B5DAF",
+            "Arn",
+          ],
+        },
+        "Principal": "*",
+        "PrincipalOrgID": {
+          "Fn::GetAtt": [
+            "GetOrgId54A03B77",
+            "Organization.Id",
+          ],
+        },
+      },
+      "Type": "AWS::Lambda::Permission",
+    },
+    "subscribesqsServiceRoleDefaultPolicyF6EDA496": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sns:Subscribe",
+              "Effect": "Allow",
+              "Resource": "*",
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "subscribesqsServiceRoleDefaultPolicyF6EDA496",
+        "Roles": [
+          {
+            "Ref": "subscribesqsServiceRoleF514CE34",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "subscribesqsServiceRoleF514CE34": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
     },
   },
   "Rules": {
@@ -1772,6 +2558,9 @@ exports[`BudgetAlertsStack Snapshot Tests (Normalized) matches snapshot for sibl
         "AllowOrgCfnInvoke",
         "AssetsPolicy206C37E3",
         "Assets9A31D427",
+        "SubscribeSqsProviderframeworkonEvent63640083",
+        "SubscribeSqsProviderframeworkonEventServiceRoleDefaultPolicy9DF88961",
+        "SubscribeSqsProviderframeworkonEventServiceRoleB899F04A",
       ],
       "Properties": {
         "AutoDeployment": {
@@ -1785,7 +2574,16 @@ exports[`BudgetAlertsStack Snapshot Tests (Normalized) matches snapshot for sibl
         "ManagedExecution": {
           "Active": true,
         },
+        "OperationPreferences": {
+          "ConcurrencyMode": "SOFT_FAILURE_TOLERANCE",
+          "FailureToleranceCount": 20,
+          "MaxConcurrentCount": 20,
+        },
         "Parameters": [
+          {
+            "ParameterKey": "BudgetAggregationQueueKeyArn",
+            "ParameterValue": "",
+          },
           {
             "ParameterKey": "DelegatedAdminAccountId",
             "ParameterValue": {
@@ -1811,7 +2609,7 @@ exports[`BudgetAlertsStack Snapshot Tests (Normalized) matches snapshot for sibl
         ],
         "StackSetName": "SnapshotTestStackBudgetAlertStackSetdev4313E270",
         "TemplateURL": {
-          "Fn::Sub": "https://s3.\${AWS::Region}.\${AWS::URLSuffix}/cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}/3a7454e0a344f071fb20d7feda5ec1b323846302f41a35e040fe94d5e5129229.json",
+          "Fn::Sub": "https://s3.\${AWS::Region}.\${AWS::URLSuffix}/cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}/37680ac61d60b500963ca1fef7f2fa7381cbbcb686cbd24307372f0eb23802ff.json",
         },
       },
       "Type": "AWS::CloudFormation::StackSet",
@@ -1821,6 +2619,9 @@ exports[`BudgetAlertsStack Snapshot Tests (Normalized) matches snapshot for sibl
         "AllowOrgCfnInvoke",
         "AssetsPolicy206C37E3",
         "Assets9A31D427",
+        "SubscribeSqsProviderframeworkonEvent63640083",
+        "SubscribeSqsProviderframeworkonEventServiceRoleDefaultPolicy9DF88961",
+        "SubscribeSqsProviderframeworkonEventServiceRoleB899F04A",
       ],
       "Properties": {
         "AutoDeployment": {
@@ -1834,7 +2635,16 @@ exports[`BudgetAlertsStack Snapshot Tests (Normalized) matches snapshot for sibl
         "ManagedExecution": {
           "Active": true,
         },
+        "OperationPreferences": {
+          "ConcurrencyMode": "SOFT_FAILURE_TOLERANCE",
+          "FailureToleranceCount": 20,
+          "MaxConcurrentCount": 20,
+        },
         "Parameters": [
+          {
+            "ParameterKey": "BudgetAggregationQueueKeyArn",
+            "ParameterValue": "",
+          },
           {
             "ParameterKey": "DelegatedAdminAccountId",
             "ParameterValue": {
@@ -1860,7 +2670,7 @@ exports[`BudgetAlertsStack Snapshot Tests (Normalized) matches snapshot for sibl
         ],
         "StackSetName": "SnapshotTestStackBudgetAlertStackSetprodD0A9C4EE",
         "TemplateURL": {
-          "Fn::Sub": "https://s3.\${AWS::Region}.\${AWS::URLSuffix}/cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}/1657947698fc2af1b208595ed00acfb029e861077a5458946cebb3e846be98d4.json",
+          "Fn::Sub": "https://s3.\${AWS::Region}.\${AWS::URLSuffix}/cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}/47ebbe3a2ed256a4eebe1e8c854fef81a3fd8a06e25b81f2d82589237c34de1a.json",
         },
       },
       "Type": "AWS::CloudFormation::StackSet",
@@ -2028,6 +2838,148 @@ exports[`BudgetAlertsStack Snapshot Tests (Normalized) matches snapshot for sibl
       },
       "Type": "AWS::IAM::Policy",
     },
+    "SubscribeSqsProviderframeworkonEvent63640083": {
+      "DependsOn": [
+        "SubscribeSqsProviderframeworkonEventServiceRoleDefaultPolicy9DF88961",
+        "SubscribeSqsProviderframeworkonEventServiceRoleB899F04A",
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "S3Key": "<asset-hash-stripped>",
+        },
+        "Description": "AWS CDK resource provider framework - onEvent (SnapshotTestStack/SubscribeSqsProvider)",
+        "Environment": {
+          "Variables": {
+            "USER_ON_EVENT_FUNCTION_ARN": {
+              "Fn::GetAtt": [
+                "subscribesqs871B5DAF",
+                "Arn",
+              ],
+            },
+          },
+        },
+        "FunctionName": "SubscribeSqsProviderFn",
+        "Handler": "framework.onEvent",
+        "LoggingConfig": {
+          "ApplicationLogLevel": "FATAL",
+          "LogFormat": "JSON",
+        },
+        "Role": {
+          "Fn::GetAtt": [
+            "SubscribeSqsProviderframeworkonEventServiceRoleB899F04A",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs22.x",
+        "Timeout": 900,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "SubscribeSqsProviderframeworkonEventServiceRoleB899F04A": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "SubscribeSqsProviderframeworkonEventServiceRoleDefaultPolicy9DF88961": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": "lambda:InvokeFunction",
+              "Effect": "Allow",
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
+                    "subscribesqs871B5DAF",
+                    "Arn",
+                  ],
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      {
+                        "Fn::GetAtt": [
+                          "subscribesqs871B5DAF",
+                          "Arn",
+                        ],
+                      },
+                      ":*",
+                    ],
+                  ],
+                },
+              ],
+            },
+            {
+              "Action": "lambda:GetFunction",
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::GetAtt": [
+                  "subscribesqs871B5DAF",
+                  "Arn",
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "SubscribeSqsProviderframeworkonEventServiceRoleDefaultPolicy9DF88961",
+        "Roles": [
+          {
+            "Ref": "SubscribeSqsProviderframeworkonEventServiceRoleB899F04A",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "SubscriptionProviderAllowOrgCfnInvoke": {
+      "DependsOn": [
+        "SubscribeSqsProviderframeworkonEvent63640083",
+        "SubscribeSqsProviderframeworkonEventServiceRoleDefaultPolicy9DF88961",
+        "SubscribeSqsProviderframeworkonEventServiceRoleB899F04A",
+      ],
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": "SubscribeSqsProviderFn",
+        "Principal": "*",
+        "PrincipalOrgID": {
+          "Fn::GetAtt": [
+            "GetOrgId54A03B77",
+            "Organization.Id",
+          ],
+        },
+      },
+      "Type": "AWS::Lambda::Permission",
+    },
     "getmailA50FFCE5": {
       "DependsOn": [
         "getmailServiceRoleDefaultPolicyD2623720",
@@ -2127,6 +3079,106 @@ exports[`BudgetAlertsStack Snapshot Tests (Normalized) matches snapshot for sibl
         ],
       },
       "Type": "AWS::IAM::Policy",
+    },
+    "subscribesqs871B5DAF": {
+      "DependsOn": [
+        "subscribesqsServiceRoleDefaultPolicyF6EDA496",
+        "subscribesqsServiceRoleF514CE34",
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "S3Key": "<asset-hash-stripped>",
+        },
+        "Environment": {
+          "Variables": {
+            "AWS_NODEJS_CONNECTION_REUSE_ENABLED": "1",
+          },
+        },
+        "FunctionName": "SubscribeSqsFn",
+        "Handler": "index.handler",
+        "Role": {
+          "Fn::GetAtt": [
+            "subscribesqsServiceRoleF514CE34",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs16.x",
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "subscribesqsInvokeF5CCE0AD": {
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "subscribesqs871B5DAF",
+            "Arn",
+          ],
+        },
+        "Principal": "*",
+        "PrincipalOrgID": {
+          "Fn::GetAtt": [
+            "GetOrgId54A03B77",
+            "Organization.Id",
+          ],
+        },
+      },
+      "Type": "AWS::Lambda::Permission",
+    },
+    "subscribesqsServiceRoleDefaultPolicyF6EDA496": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sns:Subscribe",
+              "Effect": "Allow",
+              "Resource": "*",
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "subscribesqsServiceRoleDefaultPolicyF6EDA496",
+        "Roles": [
+          {
+            "Ref": "subscribesqsServiceRoleF514CE34",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "subscribesqsServiceRoleF514CE34": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
     },
   },
   "Rules": {
