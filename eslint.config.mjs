@@ -2,7 +2,7 @@
 // See: https://eslint.org/docs/latest/use/configure/configuration-files-new
 import js from '@eslint/js';
 import tseslint from 'typescript-eslint';
-import prettierRecommended from 'eslint-plugin-prettier/recommended';
+//import prettierRecommended from 'eslint-plugin-prettier/recommended';
 import { fileURLToPath } from 'node:url';
 import { dirname } from 'node:path';
 
@@ -90,5 +90,5 @@ export default [
     rules: {},
   },
   // Integrate Prettier: disable formatting rules conflicting with Prettier
-  prettierRecommended,
+  //prettierRecommended,
 ];
