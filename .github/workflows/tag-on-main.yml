@@ -52,7 +52,6 @@ jobs:
           git push origin "$TAG"
           echo "created=true" >> "$GITHUB_OUTPUT"
 
-
       - name: Invoke workflow without inputs
         uses: benc-uk/workflow-dispatch@v1
         if: steps.tag.outputs.created == 'true'
