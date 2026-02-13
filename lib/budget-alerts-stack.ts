@@ -15,7 +15,6 @@ import {
   aws_lambda_nodejs as lambdaNodejs,
   aws_s3 as s3,
   aws_sns as sns,
-  aws_sns_subscriptions as subscriptions,
   aws_sqs as sqs,
   Duration,
   PhysicalName,
@@ -113,12 +112,16 @@ export class BudgetAlertsStack extends Stack {
         resources: ['*'],
       }),
     );
-    const subscribeFnPermissions = new lambda.CfnPermission(this, 'SubscriptionProviderAllowOrgCfnInvoke', {
-      action: 'lambda:InvokeFunction',
-      functionName: subscribeProviderName,
-      principal: '*',
-      principalOrgId: orgId,
-    });
+    const subscribeFnPermissions = new lambda.CfnPermission(
+      this,
+      'SubscriptionProviderAllowOrgCfnInvoke',
+      {
+        action: 'lambda:InvokeFunction',
+        functionName: subscribeProviderName,
+        principal: '*',
+        principalOrgId: orgId,
+      },
+    );
     subscribeFnPermissions.node.addDependency(subscribeProvider);
 
     const assetBucketPrefix = 'budget-alerts-stackset-assets';
@@ -167,16 +170,22 @@ export class BudgetAlertsStack extends Stack {
               'aws:PrincipalOrgID': orgId,
             },
             ArnLike: {
-              // Must match the *topic ARN* exactly. Previously this used ArnFormat.NO_RESOURCE_NAME,
-              // which produces `arn:...:sns:region:*:budget-alerts` and does NOT match real SNS topic
-              // ARNs (`arn:...:sns:region:account:budget-alerts`). A mismatch here leaves the
-              // subscription in PendingConfirmation / prevents delivery.
+              // IMPORTANT:
+              // The SQS queue policy must allow SNS to call `sqs:SendMessage` and the `aws:SourceArn`
+              // condition must match the *exact* SNS topic ARN.
+              //
+              // In this solution the per-account SNS topic is *created in the member account* by the
+              // StackSet (see `BudgetAlert` below) and then subscribed to this central aggregation
+              // queue. Therefore the SourceArn must match: arn:${partition}:sns:${region}:${memberAccount}:budget-alerts
+              //
+              // Note: using `*` for account is fine, but the ARN format must still include an account
+              // field (i.e. NOT `ArnFormat.NO_RESOURCE_NAME`).
               'aws:SourceArn': Arn.format({
-                region: this.region,
-                service: 'sns',
-                resource: 'budget-alerts',
-                account: '*',
                 partition: this.partition,
+                service: 'sns',
+                region: this.region,
+                account: '*',
+                resource: 'budget-alerts',
               }),
             },
           },
@@ -341,7 +350,7 @@ class BudgetAlert extends StackSetStack {
               'aws:SourceArn': `arn:${this.partition}:budgets::${this.account}:*`,
             },
             StringEquals: {
-              'aws:SourceAccount': delegatedAdminAccountId,
+              'aws:SourceAccount': this.account,
             },
           },
         }),
@@ -354,7 +363,7 @@ class BudgetAlert extends StackSetStack {
         }),
       );
 
-      new CustomResource(this, 'SubscribeSqsToTopic', {
+      const subscriber = new CustomResource(this, 'SubscribeSqsToTopic', {
         serviceToken: Arn.format({
           region: this.region,
           service: 'lambda',
@@ -368,8 +377,11 @@ class BudgetAlert extends StackSetStack {
           topicName: notificationTopic.topicName,
           accountId: this.account,
           region: this.region,
+          delegatedAdminAccountId,
+          queueArn: props.notificationSettings.globalNotificationQueueArn,
         },
       });
+      subscriber.node.addDependency(notificationTopic);
     }
 
     new budgets.CfnBudget(this, 'MonthlyBudget', {
