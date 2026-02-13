@@ -47,7 +47,9 @@ describe('SubscribeSqs custom resource handler', () => {
       ResourceProperties: {} as any,
     };
 
-    await expect(handler(event, {})).rejects.toThrow('topicName, accountId, and region are required in the event');
+    await expect(handler(event, {})).rejects.toThrow(
+      'topicName, accountId, and region are required in the event',
+    );
     expect(sendMock).not.toHaveBeenCalled();
   });
 
@@ -62,15 +64,17 @@ describe('SubscribeSqs custom resource handler', () => {
       } as any,
     };
 
-    sendMock.mockResolvedValue({ SubscriptionArn: 'arn:aws:sns:eu-central-1:111111111111:budget-alerts:sub' });
+    sendMock.mockResolvedValue({
+      SubscriptionArn: 'arn:aws:sns:eu-central-1:111111111111:budget-alerts:sub',
+    });
 
     const result = await handler(event, {});
 
     expect(result).toEqual({
       PhysicalResourceId: 'arn:aws:sns:eu-central-1:111111111111:budget-alerts:sub',
-          Data: {
-            SubscriptionArn: 'arn:aws:sns:eu-central-1:111111111111:budget-alerts:sub',
-          },
+      Data: {
+        SubscriptionArn: 'arn:aws:sns:eu-central-1:111111111111:budget-alerts:sub',
+      },
     });
 
     expect(SubscribeCommand).toHaveBeenCalledTimes(1);
@@ -79,9 +83,9 @@ describe('SubscribeSqs custom resource handler', () => {
       Protocol: 'sqs',
       TopicArn: 'arn:aws:sns:eu-central-1:111111111111:budget-alerts',
       Endpoint: 'arn:aws:sqs:eu-central-1:111111111111:budget-alerts-queue',
-          Attributes: {
-            RawMessageDelivery: 'true',
-          },
+      Attributes: {
+        RawMessageDelivery: 'true',
+      },
     });
 
     expect(sendMock).toHaveBeenCalledTimes(1);
@@ -99,23 +103,25 @@ describe('SubscribeSqs custom resource handler', () => {
       },
     };
 
-    sendMock.mockResolvedValue({ SubscriptionArn: 'arn:aws:sns:eu-central-1:999999999999:budget-alerts:sub' });
+    sendMock.mockResolvedValue({
+      SubscriptionArn: 'arn:aws:sns:eu-central-1:999999999999:budget-alerts:sub',
+    });
 
     const result = await handler(event, {});
 
     expect(result).toEqual({
       PhysicalResourceId: 'arn:aws:sns:eu-central-1:999999999999:budget-alerts:sub',
-          Data: {
-            SubscriptionArn: 'arn:aws:sns:eu-central-1:999999999999:budget-alerts:sub',
-          },
+      Data: {
+        SubscriptionArn: 'arn:aws:sns:eu-central-1:999999999999:budget-alerts:sub',
+      },
     });
 
     expect(SubscribeCommand).toHaveBeenCalledTimes(1);
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     expect((SubscribeCommand as unknown as jest.Mock).mock.calls[0][0]).toEqual({
-       Attributes: {
-         RawMessageDelivery: "true",
-       },
+      Attributes: {
+        RawMessageDelivery: 'true',
+      },
       Protocol: 'sqs',
       TopicArn: 'arn:aws:sns:eu-central-1:999999999999:budget-alerts',
       Endpoint: 'arn:aws:sqs:eu-central-1:222222222222:custom-queue',
@@ -151,4 +157,3 @@ describe('SubscribeSqs custom resource handler', () => {
     expect(sendMock).toHaveBeenCalledTimes(1);
   });
 });
-

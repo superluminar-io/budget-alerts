@@ -44,17 +44,18 @@ export const handler = async (
   log.info('Context:', JSON.stringify(ctx, null, 2));
   log.info('Event:', JSON.stringify(event, null, 2));
   if (event.RequestType === 'Delete') {
-      const subscriptionArn = (event as unknown as { Data?: { SubscriptionArn?: string } }).Data?.SubscriptionArn;
-  
-      if (subscriptionArn) {
-        const unsubResult = await sns.send(
-          new UnsubscribeCommand({
-            SubscriptionArn: subscriptionArn,
-          }),
-        );
-        log.info('Unsubscribe result:', JSON.stringify(unsubResult, null, 2));
-      }
-  
+    const subscriptionArn = (event as unknown as { Data?: { SubscriptionArn?: string } }).Data
+      ?.SubscriptionArn;
+
+    if (subscriptionArn) {
+      const unsubResult = await sns.send(
+        new UnsubscribeCommand({
+          SubscriptionArn: subscriptionArn,
+        }),
+      );
+      log.info('Unsubscribe result:', JSON.stringify(unsubResult, null, 2));
+    }
+
     return {
       PhysicalResourceId: event.PhysicalResourceId ?? 'DescribeAccountEmail',
       Data: {},
