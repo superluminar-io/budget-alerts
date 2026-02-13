@@ -16,13 +16,15 @@
     "build": "tsc",
     "watch": "tsc -w",
     "test": "jest",
-    "cdk": "cdk",
-    "lint": "eslint .",
-    "lint:fix": "eslint . --fix",
+    "cdk": "npx cdk",
+    "lint": "npx eslint .",
+    "lint:fix": "npx eslint . --fix",
     "config": "ts-node --transpile-only bin/init-budget-config.ts",
     "coverage": "jest --coverage",
     "clean": "rm -rf dist .jest .tscache budget-alerts-*.tgz",
-    "prepublishOnly": "npm run clean && npm run build"
+    "prepublishOnly": "npm run clean && npm run build",
+    "format": "npx prettier -w .",
+    "format:check": "npx prettier -c ."
   },
   "files": [
     "dist/",

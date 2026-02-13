@@ -150,9 +150,15 @@ export class BudgetAlertsStack extends Stack {
       });
       encryptionKey.addToResourcePolicy(
         new iam.PolicyStatement({
-          actions: ['kms:GenerateDataKey', 'kms:Encrypt'],
+          actions: ['kms:GenerateDataKey', 'kms:Decrypt'],
           resources: ['*'],
-          principals: [new iam.OrganizationPrincipal(orgId)],
+          principals: [new iam.ServicePrincipal('budgets.amazonaws.com')],
+          conditions: {
+            StringEquals: {
+              // org-wide instead of single account
+              'aws:SourceOrgID': orgId,
+            },
+          },
         }),
       );
       encryptionKey.addToResourcePolicy(
@@ -160,11 +166,7 @@ export class BudgetAlertsStack extends Stack {
           sid: 'AllowSnsSseForOrgBudgetAlertsTopics',
           effect: iam.Effect.ALLOW,
           principals: [new iam.ServicePrincipal('sns.amazonaws.com')],
-          actions: [
-            'kms:GenerateDataKey',
-            'kms:Decrypt',
-            'kms:DescribeKey',
-          ],
+          actions: ['kms:GenerateDataKey', 'kms:Decrypt', 'kms:DescribeKey'],
           resources: ['*'],
           conditions: {
             StringEquals: {
@@ -374,7 +376,7 @@ class BudgetAlert extends StackSetStack {
       const encryptionKey = kms.Key.fromKeyArn(this, 'ImportedKey', keyArnParam.valueAsString);
       const notificationTopic = new sns.Topic(this, 'BudgetNotificationTopic', {
         topicName: 'budget-alerts',
-        //masterKey: encryptionKey,
+        masterKey: encryptionKey,
       });
 
       subscribers.push({
