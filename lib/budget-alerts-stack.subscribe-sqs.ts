@@ -40,7 +40,7 @@ interface OnEvent {
 export const handler = async (
   event: OnEvent,
   ctx: unknown,
-): Promise<{ PhysicalResourceId: string; Data: { Email?: string } }> => {
+): Promise<{ PhysicalResourceId: string; Data: { Email?: string; SubscriptionArn?: string } }> => {
   log.info('Context:', JSON.stringify(ctx, null, 2));
   log.info('Event:', JSON.stringify(event, null, 2));
   if (event.RequestType === 'Delete') {
@@ -80,19 +80,27 @@ export const handler = async (
 
   // Prefer delegatedAdminAccountId for the topic owner when provided (the provider runs in that
   // account), otherwise fall back to the member account for backwards compatibility.
-  const topicOwnerAccountId = delegatedAdminAccountId ?? accountId;
+  const topicOwnerAccountId = accountId;
 
   const result = await sns.send(
     new SubscribeCommand({
       Protocol: 'sqs',
       TopicArn: `arn:aws:sns:${region}:${topicOwnerAccountId}:${topicName}`,
       Endpoint: queueArn,
+      // Cross-account SNS->SQS subscriptions remain in PendingConfirmation unless the subscription is
+      // created with RawMessageDelivery and the queue policy allows sns.amazonaws.com with a matching
+      // aws:SourceArn.
+      Attributes: {
+        RawMessageDelivery: 'true',
+      },
     }),
   );
   log.info('Subscribe result:', JSON.stringify(result, null, 2));
 
   return {
     PhysicalResourceId: result.SubscriptionArn ?? `TopicSubscription-${accountId}-${topicName}`,
-    Data: {},
+    Data: {
+      SubscriptionArn: result.SubscriptionArn,
+    },
   };
 };
