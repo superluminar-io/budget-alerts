@@ -18,6 +18,7 @@ import {
   aws_sqs as sqs,
   Duration,
   PhysicalName,
+  RemovalPolicy,
 } from 'aws-cdk-lib';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import type { StackSetParameter, StackSetStackProps } from 'cdk-stacksets';
@@ -145,6 +146,7 @@ export class BudgetAlertsStack extends Stack {
     if (props.budgetConfig.default.aggregationSnsTopicArn) {
       encryptionKey = new kms.Key(this, 'BudgetAggregationQueueKey', {
         enableKeyRotation: true,
+        removalPolicy: RemovalPolicy.DESTROY,
       });
       encryptionKey.addToResourcePolicy(
         new iam.PolicyStatement({
@@ -153,21 +155,60 @@ export class BudgetAlertsStack extends Stack {
           principals: [new iam.OrganizationPrincipal(orgId)],
         }),
       );
+      encryptionKey.addToResourcePolicy(
+        new iam.PolicyStatement({
+          sid: 'AllowSnsSseForOrgBudgetAlertsTopics',
+          effect: iam.Effect.ALLOW,
+          principals: [new iam.ServicePrincipal('sns.amazonaws.com')],
+          actions: [
+            'kms:GenerateDataKey',
+            'kms:Decrypt',
+            'kms:DescribeKey',
+          ],
+          resources: ['*'],
+          conditions: {
+            StringEquals: {
+              // org-wide instead of single account
+              'aws:SourceOrgID': orgId,
+            },
+            ArnLike: {
+              // scope to the topic name across *all* accounts in the org (in this region)
+              'aws:SourceArn': `arn:aws:sns:${this.region}:*:budget-alerts`,
+            },
+          },
+        }),
+      );
+      encryptionKey.addToResourcePolicy(
+        new iam.PolicyStatement({
+          sid: 'AllowSqsUseOfKeyForSse',
+          principals: [new iam.ServicePrincipal('sqs.amazonaws.com')],
+          actions: ['kms:GenerateDataKey', 'kms:Decrypt', 'kms:DescribeKey'],
+          resources: ['*'],
+          conditions: {
+            StringEquals: {
+              'aws:SourceAccount': this.account,
+              'kms:ViaService': `sqs.${this.region}.amazonaws.com`,
+            },
+          },
+        }),
+      );
+
       notificationQueue = new sqs.Queue(this, 'BudgetAggregationQueue', {
         queueName: PhysicalName.GENERATE_IF_NEEDED,
         visibilityTimeout: Duration.seconds(300),
         encryption: sqs.QueueEncryption.KMS,
         encryptionMasterKey: encryptionKey,
       });
+
       subscribeSqsFn.addEnvironment('QUEUE_ARN', notificationQueue.queueArn);
       notificationQueue.addToResourcePolicy(
         new iam.PolicyStatement({
           actions: ['sqs:SendMessage'],
-          resources: ['*'],
+          resources: [notificationQueue.queueArn],
           principals: [new iam.ServicePrincipal('sns.amazonaws.com')],
           conditions: {
             StringEquals: {
-              'aws:PrincipalOrgID': orgId,
+              'aws:SourceOrgID': orgId,
             },
             ArnLike: {
               // IMPORTANT:
@@ -333,7 +374,7 @@ class BudgetAlert extends StackSetStack {
       const encryptionKey = kms.Key.fromKeyArn(this, 'ImportedKey', keyArnParam.valueAsString);
       const notificationTopic = new sns.Topic(this, 'BudgetNotificationTopic', {
         topicName: 'budget-alerts',
-        masterKey: encryptionKey,
+        //masterKey: encryptionKey,
       });
 
       subscribers.push({
