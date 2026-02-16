@@ -235,7 +235,11 @@ export class BudgetAlertsStack extends Stack {
         }),
       );
 
-      forwarder = new lambdaNodejs.NodejsFunction(this, 'forward-sns-message', {});
+      forwarder = new lambdaNodejs.NodejsFunction(this, 'forward-sns-message', {
+        environment: {
+          TARGET_SNS_TOPIC_ARN: props.budgetConfig.default.aggregationSnsTopicArn,
+        },
+      });
       forwarder.addEventSource(
         new eventSources.SqsEventSource(notificationQueue, {
           batchSize: 10,
