@@ -16,7 +16,7 @@ jest.mock('@aws-sdk/client-sns', () => {
 
 // Import AFTER the mock so the Lambda file uses our mocked client.
 import { SubscribeCommand, UnsubscribeCommand } from '@aws-sdk/client-sns';
-import { handler } from '../../lib/budget-alerts-stack.subscribe-sqs';
+import { handler, type OnEvent } from '../../lib/budget-alerts-stack.subscribe-sqs';
 
 describe('SubscribeSqs custom resource handler', () => {
   beforeEach(() => {
@@ -40,12 +40,12 @@ describe('SubscribeSqs custom resource handler', () => {
   });
 
   it('throws when required base properties are missing', async () => {
-    const event = {
+    const event: OnEvent = {
       RequestType: 'Create' as const,
       // Cast to any to intentionally violate the ResourceProperties contract.
       // This ensures we test the runtime input validation.
-      ResourceProperties: {} as any,
-    };
+      ResourceProperties: {},
+    } as unknown as OnEvent;
 
     await expect(handler(event, {})).rejects.toThrow(
       'topicName, accountId, and region are required in the event',
@@ -61,8 +61,8 @@ describe('SubscribeSqs custom resource handler', () => {
         topicName: 'budget-alerts',
         accountId: '111111111111',
         region: 'eu-central-1',
-      } as any,
-    };
+      },
+    } as unknown as OnEvent;
 
     sendMock.mockResolvedValue({
       SubscriptionArn: 'arn:aws:sns:eu-central-1:111111111111:budget-alerts:sub',
@@ -99,7 +99,7 @@ describe('SubscribeSqs custom resource handler', () => {
         accountId: '222222222222',
         region: 'eu-central-1',
         delegatedAdminAccountId: '999999999999',
-        queueArn: 'arn:aws:sqs:eu-central-1:222222222222:custom-queue',
+        queueArn: 'arn:aws:sqs:eu-central-1:999999999999:custom-queue',
       },
     };
 
@@ -123,8 +123,8 @@ describe('SubscribeSqs custom resource handler', () => {
         RawMessageDelivery: 'true',
       },
       Protocol: 'sqs',
-      TopicArn: 'arn:aws:sns:eu-central-1:999999999999:budget-alerts',
-      Endpoint: 'arn:aws:sqs:eu-central-1:222222222222:custom-queue',
+      TopicArn: 'arn:aws:sns:eu-central-1:222222222222:budget-alerts',
+      Endpoint: 'arn:aws:sqs:eu-central-1:999999999999:custom-queue',
     });
 
     expect(sendMock).toHaveBeenCalledTimes(1);
