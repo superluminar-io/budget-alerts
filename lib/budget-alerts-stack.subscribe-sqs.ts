@@ -5,7 +5,7 @@ log.setLevel(log.levels.INFO);
 
 const sns = new SNSClient({});
 
-interface OnEvent {
+export interface OnEvent {
   RequestType: 'Create' | 'Update' | 'Delete';
   ResourceProperties?: {
     /**
@@ -69,7 +69,6 @@ export const handler = async (
   const accountId = props?.accountId;
   const region = props?.region;
 
-  const delegatedAdminAccountId = props?.delegatedAdminAccountId;
   const queueArnFromEvent = props?.queueArn;
 
   if (!topicName || !accountId || !region) {
