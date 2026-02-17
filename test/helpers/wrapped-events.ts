@@ -4,7 +4,7 @@ import { parse as parseArn } from '@aws-sdk/util-arn-parser';
 const NOW = '2026-01-28T12:00:00.000Z';
 
 const snsEnvelope = (i: number, topicArn: string, body: Record<string, unknown>) => {
-  const { region = 'eu-central-1' } = parseArn(topicArn);
+  const { region } = parseArn(topicArn);
   return JSON.stringify({
     ...body,
     TopicArn: topicArn,
@@ -24,7 +24,7 @@ export interface SqsEventRecordInput {
 
 export const sqsEvent = (...records: SqsEventRecordInput[]): SQSEvent => ({
   Records: records.map((r, i) => {
-    const { region = 'eu-central-1', accountId = '123456789012' } = parseArn(r.topicArn);
+    const { region, accountId } = parseArn(r.topicArn);
 
     const body =
       r.type === 'Notification'
