@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-empty-function */
 import { handler } from '../../lib/budget-alerts-stack.forward-sns-message';
-import { SNSClient, PublishCommand, ConfirmSubscriptionCommand } from '@aws-sdk/client-sns';
+import { SNSClient, PublishCommand, type PublishCommandInput } from '@aws-sdk/client-sns';
 import { mockClient } from 'aws-sdk-client-mock';
 import type { Context, SQSEvent } from 'aws-lambda';
 import { sqsEvent, type SqsEventRecordInput } from '../helpers/wrapped-events';
@@ -83,25 +83,23 @@ describe('forward-sns-message Lambda', () => {
 
       expect(snsMock.calls()).toHaveLength(1);
       const call = snsMock.call(0);
-      expect(call.args[0].input).toMatchObject({
+      const input = call.args[0].input as PublishCommandInput;
+      expect(input).toMatchObject({
         TopicArn: TARGET_TOPIC_ARN,
-        Subject: 'AWS Budgets: test has exceeded your alert threshold',
-        Message: `AWS Budget Notification January 28, 2026
-AWS Account 391613010373
-
-Dear AWS Customer,
-
-You requested that we alert you when the FORECASTED Cost associated with your test budget is greater than $0.00 for the current month. The FORECASTED Cost associated with this budget is $0.95. You can find additional details below and by accessing the AWS Budgets dashboard [1].
-
-Budget Name: test
-Budget Type: Cost
-Budgeted Amount: $0.02
-Alert Type: FORECASTED
-Alert Threshold: > $0.00
-FORECASTED Amount: $0.95
-
-[1] https://console.aws.amazon.com/costmanagement/home#/budgets
-`,
+        Subject: 'Budget Alert',
+        Message: expect.any(String) as unknown,
+      });
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      const publishedMessage = JSON.parse(input.Message!) as unknown;
+      expect(publishedMessage).toMatchObject({
+        version: '1.0',
+        source: 'custom',
+        content: {
+          textType: 'client-markdown',
+          title: 'AWS Budget Alert',
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+          description: JSON.parse(exampleEvent.Records[0].body).Message,
+        },
       });
     });
 
@@ -155,103 +153,5 @@ FORECASTED Amount: $0.95
       await expect(handler(event, context)).rejects.toThrow('Failed message');
       expect(snsMock.calls()).toHaveLength(3);
     });
-  });
-});
-
-describe('subscription confirmation handling', () => {
-  const TARGET_TOPIC_ARN = 'arn:aws:sns:us-east-1:123456789012:target-topic';
-
-  beforeEach(() => {
-    snsMock.reset();
-    process.env.TARGET_SNS_TOPIC_ARN = TARGET_TOPIC_ARN;
-  });
-
-  const createMockContext = (): Context => ({
-    callbackWaitsForEmptyEventLoop: false,
-    functionName: 'test-function',
-    functionVersion: '1',
-    invokedFunctionArn: 'arn:aws:lambda:us-east-1:123456789012:function:test-function',
-    memoryLimitInMB: '128',
-    awsRequestId: 'test-request-id',
-    logGroupName: '/aws/lambda/test-function',
-    logStreamName: '2024/01/01/[$LATEST]test',
-    getRemainingTimeInMillis: () => 30000,
-    done: () => {},
-    fail: () => {},
-    succeed: () => {},
-  });
-
-  const createSubscriptionConfirmationSQSEvent = (): SQSEvent => {
-    const body = JSON.stringify({
-      Type: 'SubscriptionConfirmation',
-      MessageId: '11111111-2222-3333-4444-555555555555',
-      Token: 'example-token',
-      TopicArn: 'arn:aws:sns:us-east-1:123456789012:source-topic',
-      Message: 'You have chosen to subscribe to the topic.',
-      SubscribeURL:
-        'https://sns.us-east-1.amazonaws.com/?Action=ConfirmSubscription&TopicArn=arn:aws:sns:us-east-1:123456789012:source-topic&Token=example-token',
-      Timestamp: '2026-01-28T11:52:33.584Z',
-      SignatureVersion: '1',
-      Signature: 'signature',
-      SigningCertURL: 'https://sns.us-east-1.amazonaws.com/SimpleNotificationService-12345.pem',
-    });
-
-    return {
-      Records: [
-        {
-          messageId: 'sub-confirm-message-id',
-          receiptHandle: 'handle',
-          body,
-          attributes: {
-            ApproximateReceiveCount: '1',
-            SentTimestamp: '1769601153617',
-            SenderId: 'AIDAISMY7JYY5F7RTT6AO',
-            ApproximateFirstReceiveTimestamp: '1769601153631',
-          },
-          messageAttributes: {},
-          md5OfBody: 'md5',
-          eventSource: 'aws:sqs',
-          eventSourceARN: 'arn:aws:sqs:us-east-1:123456789012:test',
-          awsRegion: 'us-east-1',
-        },
-      ],
-    } as SQSEvent;
-  };
-
-  it('should confirm subscription when receiving SubscriptionConfirmation message', async () => {
-    const context = createMockContext();
-
-    // ConfirmSubscription success
-    snsMock.on(ConfirmSubscriptionCommand).resolves({
-      SubscriptionArn: 'arn:aws:sns:us-east-1:123456789012:source-topic:sub-arn',
-    });
-
-    const event = createSubscriptionConfirmationSQSEvent();
-    await handler(event, context);
-
-    // No publish calls should be made, only a confirmation
-    const calls = snsMock.calls();
-    expect(calls).toHaveLength(1);
-    const call = snsMock.call(0);
-    expect(call.args[0]).toBeInstanceOf(ConfirmSubscriptionCommand);
-    expect(call.args[0].input).toMatchObject({
-      TopicArn: 'arn:aws:sns:us-east-1:123456789012:source-topic',
-      Token: 'example-token',
-    });
-  });
-
-  it('should propagate error when subscription confirmation fails', async () => {
-    const context = createMockContext();
-
-    // ConfirmSubscription failure
-    snsMock.on(ConfirmSubscriptionCommand).rejects(new Error('confirm failed'));
-
-    const event = createSubscriptionConfirmationSQSEvent();
-    await expect(handler(event, context)).rejects.toThrow('confirm failed');
-
-    const calls = snsMock.calls();
-    expect(calls).toHaveLength(1);
-    const call = snsMock.call(0);
-    expect(call.args[0]).toBeInstanceOf(ConfirmSubscriptionCommand);
   });
 });
