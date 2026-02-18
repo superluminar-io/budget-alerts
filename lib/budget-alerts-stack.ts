@@ -148,6 +148,10 @@ export class BudgetAlertsStack extends Stack {
         enableKeyRotation: true,
         removalPolicy: RemovalPolicy.DESTROY,
       });
+      new kms.Alias(this, 'BudgetAggregationQueueKeyAlias', {
+        aliasName: 'alias/budget-alerts-key',
+        targetKey: encryptionKey,
+      });
       encryptionKey.addToResourcePolicy(
         new iam.PolicyStatement({
           actions: ['kms:GenerateDataKey', 'kms:Decrypt'],
@@ -196,7 +200,7 @@ export class BudgetAlertsStack extends Stack {
       );
 
       notificationQueue = new sqs.Queue(this, 'BudgetAggregationQueue', {
-        queueName: PhysicalName.GENERATE_IF_NEEDED,
+        queueName: 'budget-alerts-aggregation-queue',
         visibilityTimeout: Duration.seconds(300),
         encryption: sqs.QueueEncryption.KMS,
         encryptionMasterKey: encryptionKey,
@@ -236,6 +240,7 @@ export class BudgetAlertsStack extends Stack {
       );
 
       forwarder = new lambdaNodejs.NodejsFunction(this, 'forward-sns-message', {
+        functionName: 'ForwardBudgetAlertMessagesFn',
         environment: {
           TARGET_SNS_TOPIC_ARN: props.budgetConfig.default.aggregationSnsTopicArn,
         },

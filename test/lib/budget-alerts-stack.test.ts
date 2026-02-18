@@ -2,7 +2,8 @@ import { BudgetAlertsStack } from '../../lib/budget-alerts-stack';
 import { computeOuBudgetAttachments, type OuNode } from '../../lib/org/budget-planner';
 import { type BudgetConfig } from '../../lib/org/budget-config';
 import { App, type Stack } from 'aws-cdk-lib';
-import { Template } from 'aws-cdk-lib/assertions';
+import { Match, Template } from 'aws-cdk-lib/assertions';
+import { writeFileSync } from 'fs';
 
 const STACKSET_RESOURCE_TYPE = 'AWS::CloudFormation::StackSet';
 
@@ -151,5 +152,175 @@ describe('BudgetAlertsStack (CDK)', () => {
 
     expect(expected).toBe(1);
     expect(countStackSets(template)).toBe(1);
+  });
+
+  describe('SNS forwarding', () => {
+    it('generates a Lambda function with the correct environment variable', () => {
+      const orgOus: OuNode[] = [{ id: 'root', parentId: null }];
+
+      const config: BudgetConfig = {
+        default: {
+          amount: 10,
+          currency: 'USD',
+          aggregationSnsTopicArn: 'arn:aws:sns:us-east-1:123456789012:BudgetAlerts',
+        },
+        organizationalUnits: {},
+      };
+
+      const stack = synthStack(orgOus, config);
+      const template = Template.fromStack(stack);
+
+      template.hasResourceProperties('AWS::Lambda::Function', {
+        FunctionName: 'ForwardBudgetAlertMessagesFn',
+        Environment: {
+          Variables: {
+            TARGET_SNS_TOPIC_ARN: 'arn:aws:sns:us-east-1:123456789012:BudgetAlerts',
+          },
+        },
+      });
+
+      // sqs forwarding
+      template.hasResourceProperties('AWS::Lambda::Function', {
+        FunctionName: 'SubscribeSqsFn',
+        Environment: {
+          Variables: {
+            AWS_NODEJS_CONNECTION_REUSE_ENABLED: '1',
+            QUEUE_ARN: {
+              'Fn::GetAtt': [Match.stringLikeRegexp('BudgetAggregationQueue'), 'Arn'],
+            },
+          },
+        },
+      });
+      template.hasResourceProperties('AWS::Lambda::Permission', {
+        Action: 'lambda:InvokeFunction',
+        Principal: '*',
+        PrincipalOrgID: {
+          'Fn::GetAtt': [Match.stringLikeRegexp('GetOrgId'), 'Organization.Id'],
+        },
+        FunctionName: {
+          'Fn::GetAtt': [Match.stringLikeRegexp('subscribesqs871B5DAF'), 'Arn'],
+        },
+      });
+
+      // queue properties
+      template.hasResourceProperties('AWS::SQS::Queue', {
+        VisibilityTimeout: 300,
+        KmsMasterKeyId: {
+          'Fn::GetAtt': [Match.stringLikeRegexp('BudgetAggregationQueueKey'), 'Arn'],
+        },
+      });
+
+      // encryption
+      template.hasResourceProperties('AWS::KMS::Key', {
+        EnableKeyRotation: true,
+        KeyPolicy: {
+          Statement: [
+            {
+              Action: 'kms:*',
+              Effect: 'Allow',
+              Principal: {
+                AWS: {
+                  'Fn::Join': [
+                    '',
+                    [
+                      'arn:',
+                      {
+                        Ref: 'AWS::Partition',
+                      },
+                      ':iam::',
+                      {
+                        Ref: 'AWS::AccountId',
+                      },
+                      ':root',
+                    ],
+                  ],
+                },
+              },
+              Resource: '*',
+            },
+            {
+              Action: ['kms:GenerateDataKey', 'kms:Decrypt'],
+              Condition: {
+                StringEquals: {
+                  'aws:SourceOrgID': {
+                    'Fn::GetAtt': [Match.stringLikeRegexp('GetOrgId'), 'Organization.Id'],
+                  },
+                },
+              },
+              Effect: 'Allow',
+              Principal: {
+                Service: 'budgets.amazonaws.com',
+              },
+              Resource: '*',
+            },
+            {
+              Action: ['kms:GenerateDataKey', 'kms:Decrypt', 'kms:DescribeKey'],
+              Condition: {
+                StringEquals: {
+                  'aws:SourceOrgID': {
+                    'Fn::GetAtt': [Match.stringLikeRegexp('GetOrgId54A03B77'), 'Organization.Id'],
+                  },
+                },
+                ArnLike: {
+                  'aws:SourceArn': {
+                    'Fn::Join': [
+                      '',
+                      [
+                        'arn:aws:sns:',
+                        {
+                          Ref: 'AWS::Region',
+                        },
+                        ':*:budget-alerts',
+                      ],
+                    ],
+                  },
+                },
+              },
+              Effect: 'Allow',
+              Principal: {
+                Service: 'sns.amazonaws.com',
+              },
+              Resource: '*',
+              Sid: 'AllowSnsSseForOrgBudgetAlertsTopics',
+            },
+            {
+              Action: ['kms:GenerateDataKey', 'kms:Decrypt', 'kms:DescribeKey'],
+              Condition: {
+                StringEquals: {
+                  'aws:SourceAccount': {
+                    Ref: 'AWS::AccountId',
+                  },
+                  'kms:ViaService': {
+                    'Fn::Join': [
+                      '',
+                      [
+                        'sqs.',
+                        {
+                          Ref: 'AWS::Region',
+                        },
+                        '.amazonaws.com',
+                      ],
+                    ],
+                  },
+                },
+              },
+              Effect: 'Allow',
+              Principal: {
+                Service: 'sqs.amazonaws.com',
+              },
+              Resource: '*',
+              Sid: 'AllowSqsUseOfKeyForSse',
+            },
+          ],
+          Version: '2012-10-17',
+        },
+      });
+      template.hasResourceProperties('AWS::KMS::Alias', {
+        AliasName: 'alias/budget-alerts-key',
+        TargetKeyId: {
+          'Fn::GetAtt': [Match.stringLikeRegexp('BudgetAggregationQueueKey'), 'Arn'],
+        },
+      });
+    });
   });
 });
