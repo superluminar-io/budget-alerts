@@ -38,7 +38,7 @@ export interface OuBudgetConfigEntry {
 export interface BudgetConfig {
   default: {
     amount?: number;
-    currency: string;
+    currency?: string;
     thresholds?: Thresholds;
     aggregationSnsTopicArn?: string;
   };
