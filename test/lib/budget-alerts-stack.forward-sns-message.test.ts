@@ -91,7 +91,6 @@ describe('forward-sns-message Lambda', () => {
       });
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       const publishedMessage = JSON.parse(input.Message!) as unknown;
-      console.log('Published message:', JSON.stringify((publishedMessage as any).description, null, 2));
       expect(publishedMessage).toMatchObject({
         version: '1.0',
         source: 'custom',
@@ -99,8 +98,7 @@ describe('forward-sns-message Lambda', () => {
         content: expect.objectContaining({
           textType: 'client-markdown',
           title: 'AWS Budget Alert',
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-          description: expect.stringMatching(/AWS Budget Notification.*\nAWS Account \d{12}\n\nDear AWS Customer,\n\nYou requested that we alert you when the ACTUAL Cost associated with your MonthlyBudget-\S+ budget is greater than \$\d+(\.\d{1,2})? for the current month\. The ACTUAL Cost associated with this budget is \$\d+(\.\d{1,2})?\. You can find additional details below and by accessing the AWS Budgets dashboard \[1\]\.\n\nBudget Name: MonthlyBudget\S+\nBudget Type: Cost\nBudgeted Amount: \$\d+(\.\d{1,2})?\nAlert Type: ACTUAL\nAlert Threshold: > \$\d+(\.\d{2})?\nACTUAL Amount: \$\d+(\.\d{2})\n\n\[1\] https:\/\/console.aws.amazon.com\/costmanagement\/home#\/budgets/),
+          description: expect.stringMatching(/AWS Budget Notification.*\nAWS Account \d{12}\n\nDear AWS Customer,\n\nYou requested that we alert you when the ACTUAL Cost associated with your MonthlyBudget-\S+ budget is greater than \$\d+(\.\d{1,2})? for the current month\. The ACTUAL Cost associated with this budget is \$\d+(\.\d{1,2})?\. You can find additional details below and by accessing the AWS Budgets dashboard \[1\]\.\n\nBudget Name: MonthlyBudget\S+\nBudget Type: Cost\nBudgeted Amount: \$\d+(\.\d{1,2})?\nAlert Type: ACTUAL\nAlert Threshold: > \$\d+(\.\d{2})?\nACTUAL Amount: \$\d+(\.\d{2})\n\n\[1\] https:\/\/console.aws.amazon.com\/costmanagement\/home#\/budgets/) as unknown,
         }),
       });
     });
