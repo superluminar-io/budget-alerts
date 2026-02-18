@@ -1,0 +1,32 @@
+default:
+  amount: 50
+  currency: USD
+  aggregationSnsTopicArn: arn:aws:sns:eu-west-1:197726340368:budget-notifications
+organizationalUnits: #Root OU: Root (r-13ix)
+  ou-13ix-aw2ojc9r: #Parent: Root (r-13ix), Name: Services
+    amount: null
+  ou-13ix-bhyvdv11: #Parent: Root (r-13ix), Name: Security
+    amount: null
+  ou-13ix-k3j4g3u1: #Parent: Root (r-13ix), Name: Suspended
+    amount: null
+  ou-13ix-pa2dqj0x: #Parent: Root (r-13ix), Name: Superwerker
+    amount: null
+  ou-13ix-q2ln7q4r: #Parent: Root (r-13ix), Name: Hiring
+    amount: null
+  ou-13ix-s0bn5tnk: #Parent: Root (r-13ix), Name: Playground
+    amount: null
+  ou-13ix-x5ytj34j: #Parent: Root (r-13ix), Name: Sandbox
+    amount: null
+  ou-13ix-xh9z7807: #Parent: Root (r-13ix), Name: Workshops
+    amount: null
+  ou-13ix-dikqjh01: #Parent: Workshops (ou-13ix-xh9z7807), Name: Workshop Accounts Prod
+    amount: null
+  ou-13ix-lr4ax5ht: #Parent: Workshops (ou-13ix-xh9z7807), Name: Bedrock
+    amount: null
+  ou-13ix-nx9crx8v: #Parent: Workshops (ou-13ix-xh9z7807), Name: Workshop Accounts Staging
+    amount: null
+  ou-13ix-y8w2ztf4: #Parent: Root (r-13ix), Name: Management
+    amount: null
+  r-13ix: #Parent: ROOT, Name: Root
+    amount: null
+

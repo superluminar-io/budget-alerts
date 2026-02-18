@@ -16,23 +16,23 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     permissions:
-      contents: write   # create GitHub Release
-      id-token: write   # npm provenance (optional but recommended)
-      actions: write    # softprops/action-gh-release
+      contents: write # create GitHub Release
+      id-token: write # npm provenance (optional but recommended)
+      actions: write # softprops/action-gh-release
     steps:
       - name: Checkout tag
         uses: actions/checkout@v6
         with:
           fetch-depth: 0
-          ref: "refs/tags/${{ github.event.inputs.version }}"
+          ref: 'refs/tags/${{ github.event.inputs.version }}'
 
       - name: Setup Node
         uses: actions/setup-node@v6
         with:
-          node-version: "24"
-          registry-url: "https://registry.npmjs.org"
+          node-version: '24'
+          registry-url: 'https://registry.npmjs.org'
           cache: npm
- 
+
       - name: Update npm
         run: npm install -g npm@latest
 
@@ -45,7 +45,7 @@ jobs:
       - name: Test
         run: npm test
 
-      - name: "Sanity check: tag matches package.json version"
+      - name: 'Sanity check: tag matches package.json version'
         run: |
           set -euo pipefail
           VERSION="$(node -p "require('./package.json').version")"
@@ -69,6 +69,5 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: "v${{ github.event.inputs.version }}"
+          tag_name: 'v${{ github.event.inputs.version }}'
           generate_release_notes: true
-
