@@ -172,4 +172,26 @@ describe('BudgetAlertsStack Snapshot Tests (Normalized)', () => {
     const template = synthNormalizedTemplate(orgOus, config);
     expect(template).toMatchSnapshot();
   });
+
+  it('matches snapshot for enabled sns notifications', () => {
+    const orgOus: OuNode[] = [
+      { id: 'root', parentId: null },
+      { id: 'apps', parentId: 'root' },
+      { id: 'payroll', parentId: 'apps' },
+      { id: 'accounting', parentId: 'apps' },
+    ];
+
+    const config: BudgetConfig = sanitizeBudgetConfig({
+      default: {
+        aggregationSnsTopicArn: 'arn:aws:sns:us-east-1:123456789012:MyBudgetAlertsTopic',
+      },
+      organizationalUnits: {
+        apps: { amount: 10, currency: 'USD' },
+        payroll: { amount: 20, currency: 'USD' },
+      },
+    });
+
+    const template = synthNormalizedTemplate(orgOus, config);
+    expect(template).toMatchSnapshot();
+  });
 });

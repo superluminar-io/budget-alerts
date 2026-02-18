@@ -3,11 +3,5 @@
   "compilerOptions": {
     "noEmit": true
   },
-  "include": [
-    "lib/**/*.ts",
-    "bin/**/*.ts",
-    "test/**/*.ts",
-    "eslint.config.mjs"
-  ]
+  "include": ["lib/**/*.ts", "bin/**/*.ts", "test/**/*.ts", "eslint.config.mjs", "jest.config.ts"]
 }
-
