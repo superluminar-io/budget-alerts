@@ -16,13 +16,15 @@
     "build": "tsc",
     "watch": "tsc -w",
     "test": "jest",
-    "cdk": "cdk",
-    "lint": "eslint .",
-    "lint:fix": "eslint . --fix",
+    "cdk": "npx cdk",
+    "lint": "npx eslint .",
+    "lint:fix": "npx eslint . --fix",
     "config": "ts-node --transpile-only bin/init-budget-config.ts",
     "coverage": "jest --coverage",
     "clean": "rm -rf dist .jest .tscache budget-alerts-*.tgz",
-    "prepublishOnly": "npm run clean && npm run build"
+    "prepublishOnly": "npm run clean && npm run build",
+    "format": "npx prettier -w .",
+    "format:check": "npx prettier -c ."
   },
   "files": [
     "dist/",
@@ -35,9 +37,11 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.39.2",
+    "@types/aws-lambda": "^8.10.160",
     "@types/jest": "^30.0.0",
-    "@types/node": "25.2.3",
-    "aws-cdk": "2.1106.0",
+    "@types/node": "^24.10.1",
+    "aws-cdk": "^2.1033.0",
+    "aws-sdk-client-mock": "^4.1.0",
     "eslint": "^9.39.2",
     "eslint-config-prettier": "^9.1.2",
     "eslint-plugin-prettier": "^5.5.5",
@@ -50,6 +54,8 @@
   "dependencies": {
     "@aws-sdk/client-controltower": "^3.990.0",
     "@aws-sdk/client-organizations": "^3.990.0",
+    "@aws-sdk/client-sns": "^3.990.0",
+    "@aws-sdk/client-sqs": "^3.990.0",
     "@aws-sdk/util-arn-parser": "^3.972.2",
     "aws-cdk-lib": "2.238.0",
     "cdk-stacksets": "^0.0.152",

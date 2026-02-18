@@ -56,6 +56,14 @@ function isNullableBudgetConfig(
     if (typeof currency !== 'string') {
       return false;
     }
+
+    //
+    //Step 4: Validate default.aggregationSnsTopicArn
+    //
+    const snsTopicArn = (def as Record<string, unknown>).aggregationSnsTopicArn;
+    if (snsTopicArn && typeof snsTopicArn !== 'string') {
+      return false;
+    }
   }
 
   //
@@ -67,6 +75,10 @@ function isNullableBudgetConfig(
       return false;
     }
   }
+
+  //
+  // Step 5: Validate sns topic arn in default
+  //
 
   // We intentionally do not validate entries here
   return true;
@@ -89,7 +101,6 @@ export function sanitizeBudgetConfig(
 ): BudgetConfig {
   const sanitized = { ...config, default: config.default ?? { currency: DISABLED_CURRENCY } };
   sanitized.default.thresholds ??= DEFAULT_THRESHOLDS;
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   sanitized.default.currency ??= DEFAULT_CURRENCY;
   // loop over organizationalUnits and fill in missing fields
   if (sanitized.organizationalUnits) {

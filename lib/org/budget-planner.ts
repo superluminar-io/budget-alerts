@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 // lib/org/budget-planner.ts
 
-import { type Thresholds, type BudgetConfig } from './budget-config';
+import { type Thresholds, type BudgetConfig, DEFAULT_CURRENCY } from './budget-config';
 
 export interface OuNode {
   id: string;
@@ -123,7 +123,7 @@ export function computeEffectiveBudgets(
       const eb: EffectiveBudget = {
         mode: 'on',
         amount: config.default.amount!,
-        currency: config.default.currency,
+        currency: config.default.currency ?? DEFAULT_CURRENCY,
         thresholds: config.default.thresholds!,
       };
       result.set(ouId, eb);
@@ -135,7 +135,7 @@ export function computeEffectiveBudgets(
       const eb: EffectiveBudget = {
         mode: 'on',
         amount: cfgEntry.amount,
-        currency: cfgEntry.currency ?? config.default.currency,
+        currency: cfgEntry.currency ?? config.default.currency ?? DEFAULT_CURRENCY,
         thresholds: cfgEntry.thresholds ?? config.default.thresholds!,
       };
       result.set(ouId, eb);
@@ -159,7 +159,7 @@ export function computeEffectiveBudgets(
     const eb: EffectiveBudget = {
       mode: 'on',
       amount: config.default.amount!,
-      currency: config.default.currency,
+      currency: config.default.currency ?? DEFAULT_CURRENCY,
       thresholds: config.default.thresholds!,
     };
     result.set(ouId, eb);
