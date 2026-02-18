@@ -135,6 +135,7 @@ This solution automates budget deployment using three core elements:
    Each StackSet deploys a minimal stack to each account in the target OU:
    - An AWS Budget
    - An email alert subscription
+   - Additionally, Budget Alerts can be forwarded to a global Amazon SNS topic for centralized processing. This is useful for sending email or phone (SMS) notifications, integrating with incident management or ticketing systems, or running custom processing via Lambda. When enabled, per-account alerts are published to the global topic so you can manage subscribers and downstream processing in one place. All messages are encrypted with KMS.
 
 The architecture diagram (see image) illustrates this high-level structure:
 A centralized orchestrating stack → stacksets per OU subtree → per-account deployments.
