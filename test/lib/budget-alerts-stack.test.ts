@@ -3,7 +3,6 @@ import { computeOuBudgetAttachments, type OuNode } from '../../lib/org/budget-pl
 import { type BudgetConfig } from '../../lib/org/budget-config';
 import { App, type Stack } from 'aws-cdk-lib';
 import { Match, Template } from 'aws-cdk-lib/assertions';
-import { writeFileSync } from 'fs';
 
 const STACKSET_RESOURCE_TYPE = 'AWS::CloudFormation::StackSet';
 

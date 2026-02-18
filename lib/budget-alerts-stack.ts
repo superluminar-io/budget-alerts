@@ -17,7 +17,6 @@ import {
   aws_sns as sns,
   aws_sqs as sqs,
   Duration,
-  PhysicalName,
   RemovalPolicy,
 } from 'aws-cdk-lib';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
