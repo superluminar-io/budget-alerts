@@ -123,7 +123,7 @@ export function computeEffectiveBudgets(
       const eb: EffectiveBudget = {
         mode: 'on',
         amount: config.default.amount!,
-        currency: config.default.currency,
+        currency: config.default.currency ?? 'USD',
         thresholds: config.default.thresholds!,
       };
       result.set(ouId, eb);
@@ -135,7 +135,7 @@ export function computeEffectiveBudgets(
       const eb: EffectiveBudget = {
         mode: 'on',
         amount: cfgEntry.amount,
-        currency: cfgEntry.currency ?? config.default.currency,
+        currency: cfgEntry.currency ?? config.default.currency ?? 'USD',
         thresholds: cfgEntry.thresholds ?? config.default.thresholds!,
       };
       result.set(ouId, eb);
@@ -159,7 +159,7 @@ export function computeEffectiveBudgets(
     const eb: EffectiveBudget = {
       mode: 'on',
       amount: config.default.amount!,
-      currency: config.default.currency,
+      currency: config.default.currency ?? 'USD',
       thresholds: config.default.thresholds!,
     };
     result.set(ouId, eb);

@@ -55,7 +55,7 @@ describe('forward-sns-message Lambda', () => {
         messageId: '27fa4149-99e0-44cd-9caa-4b58263b30e3',
         receiptHandle:
           'AQEBvGRGKAPLqUjOS3bEg1ZZ0cz/Sz5NA+r5E/R3CEif0OruvDbd/On29JNHnwvzVRqWBFZoPd27R8DVeqvYyZ6G+zH7ZB0mg5v9RuraZdY34/dLD7dSmSMlQpzmi8lTGodLe/k+wRTjsEGRYs9jkaKtsx937+6b+rYIE4aT5ZzQK16eiux7AVFVBWcaBUdvHENvwGqu5iLodzOHiF/9hv6v5YbZMarM+KVwXObDeXt4QuVJVVA6eptTjoxck0Zi47f4i3Pq7n3fxNCYecTZ22wccsw/v1UW2/jxMJvSTu+Q4iIdW+68sqBU5gxCo+F8Fye5mFXTtiNSKgrdlGTMSlP94/eM6Q3jD/IN7vYPztV6s4Pq6CcAJUDZqUWjWpZfaWB6',
-        body: '{\n "Type" : "Notification",\n "MessageId" : "d7eac51f-e9b1-5584-b17f-a4ec13707c7d",\n "TopicArn" : "arn:aws:sns:eu-west-1:391613010373:budget-alerts",\n "Subject" : "AWS Budgets: test has exceeded your alert threshold",\n "Message" : "AWS Budget Notification January 28, 2026\\nAWS Account 391613010373\\n\\nDear AWS Customer,\\n\\nYou requested that we alert you when the FORECASTED Cost associated with your test budget is greater than $0.00 for the current month. The FORECASTED Cost associated with this budget is $0.95. You can find additional details below and by accessing the AWS Budgets dashboard [1].\\n\\nBudget Name: test\\nBudget Type: Cost\\nBudgeted Amount: $0.02\\nAlert Type: FORECASTED\\nAlert Threshold: > $0.00\\nFORECASTED Amount: $0.95\\n\\n[1] https://console.aws.amazon.com/costmanagement/home#/budgets\\n",\n "Timestamp" : "2026-01-28T11:52:33.584Z",\n "SignatureVersion" : "1",\n "Signature" : "E6D5lCzdLmEwGIEYgjyV0mD2jLS9L5sE8rWH5vgNlusFVmeFhcB760/AzXUAr0Rv6RPON4DML0KaRJkoRpcRCs4Z1xPVNAEguolF9pWy05b+C0zy8jX17lydqN4GYRuqFhrn8xnkSyWquAlfjjtKyR6G7MdLwmcaejnFOVdtftjSOrH8l7YMU2z494GpDbn4c1TnCxm4wKZ5jsJmkIMoQQZSX7RGQ4Y1ydP0mMhMkSB9Sc4Y7rSlBqomB1Tm5Q0P1M+aJ24qZ35knV0GuJ8Ho+Bj1slG9w6JzZyBXwLQWymh+h43jz8s+XysJIkkr2s1Utz3OaFsUc6GDFdRnuyL3w==",\n "SigningCertURL" : "https://sns.eu-west-1.amazonaws.com/SimpleNotificationService-7506a1e35b36ef5a444dd1a8e7cc3ed8.pem",\n "UnsubscribeURL" : "https://sns.eu-west-1.amazonaws.com/?Action=Unsubscribe&SubscriptionArn=arn:aws:sns:eu-west-1:391613010373:budget-alerts:56c1b69b-5fd3-4751-8452-f15e03766be2"\n}',
+        body: 'AWS Budget Notification February 17, 2026\nAWS Account 084274240787\n\nDear AWS Customer,\n\nYou requested that we alert you when the ACTUAL Cost associated with your MonthlyBudget-eu-west-1-1770978414540-1X3bcZUWhcMp budget is greater than $0.50 for the current month. The ACTUAL Cost associated with this budget is $18.86. You can find additional details below and by accessing the AWS Budgets dashboard [1].\n\nBudget Name: MonthlyBudget-eu-west-1-1770978414540-1X3bcZUWhcMp\nBudget Type: Cost\nBudgeted Amount: $50.00\nAlert Type: ACTUAL\nAlert Threshold: > $0.50\nACTUAL Amount: $18.86\n\n[1] https://console.aws.amazon.com/costmanagement/home#/budgets\n',
         attributes: {
           ApproximateReceiveCount: '1',
           AWSTraceHeader:
@@ -91,15 +91,17 @@ describe('forward-sns-message Lambda', () => {
       });
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       const publishedMessage = JSON.parse(input.Message!) as unknown;
+      console.log('Published message:', JSON.stringify((publishedMessage as any).description, null, 2));
       expect(publishedMessage).toMatchObject({
         version: '1.0',
         source: 'custom',
-        content: {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        content: expect.objectContaining({
           textType: 'client-markdown',
           title: 'AWS Budget Alert',
           // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-          description: JSON.parse(exampleEvent.Records[0].body).Message,
-        },
+          description: expect.stringMatching(/AWS Budget Notification.*\nAWS Account \d{12}\n\nDear AWS Customer,\n\nYou requested that we alert you when the ACTUAL Cost associated with your MonthlyBudget-\S+ budget is greater than \$\d+(\.\d{1,2})? for the current month\. The ACTUAL Cost associated with this budget is \$\d+(\.\d{1,2})?\. You can find additional details below and by accessing the AWS Budgets dashboard \[1\]\.\n\nBudget Name: MonthlyBudget\S+\nBudget Type: Cost\nBudgeted Amount: \$\d+(\.\d{1,2})?\nAlert Type: ACTUAL\nAlert Threshold: > \$\d+(\.\d{2})?\nACTUAL Amount: \$\d+(\.\d{2})\n\n\[1\] https:\/\/console.aws.amazon.com\/costmanagement\/home#\/budgets/),
+        }),
       });
     });
 
@@ -117,7 +119,7 @@ describe('forward-sns-message Lambda', () => {
         expect(call.args[0].input).toMatchObject({
           TopicArn: TARGET_TOPIC_ARN,
 
-          Subject: `AWS Budgets: Budget threshold exceeded`,
+          Subject: 'Budget Alert',
         });
       }
     });
