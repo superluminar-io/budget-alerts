@@ -143,7 +143,7 @@ export function loadBudgetConfig(configPath = 'budget-config.yaml'): BudgetConfi
   try {
     parsed = yamlParse(raw);
   } catch (err) {
-    throw new Error(`Failed to parse budget config YAML at ${fullPath}: ${String(err)}`);
+    throw new Error(`Failed to parse budget config YAML at ${fullPath}`, {cause: err});
   }
 
   if (!isNullableBudgetConfig(parsed)) {
