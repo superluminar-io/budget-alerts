@@ -1,6 +1,6 @@
 {
   "name": "@superluminar-io/budget-alerts",
-  "version": "0.2.2",
+  "version": "0.4.0",
   "bin": {
     "budget-alerts": "dist/bin/budget-alerts.js",
     "budget-alerts-init-config": "dist/bin/init-budget-config.js"
@@ -16,13 +16,15 @@
     "build": "tsc",
     "watch": "tsc -w",
     "test": "jest",
-    "cdk": "cdk",
-    "lint": "eslint .",
-    "lint:fix": "eslint . --fix",
+    "cdk": "npx cdk",
+    "lint": "npx eslint .",
+    "lint:fix": "npx eslint . --fix",
     "config": "ts-node --transpile-only bin/init-budget-config.ts",
     "coverage": "jest --coverage",
     "clean": "rm -rf dist .jest .tscache budget-alerts-*.tgz",
-    "prepublishOnly": "npm run clean && npm run build"
+    "prepublishOnly": "npm run clean && npm run build",
+    "format": "npx prettier -w .",
+    "format:check": "npx prettier -c ."
   },
   "files": [
     "dist/",
@@ -34,28 +36,33 @@
     "access": "public"
   },
   "devDependencies": {
-    "@eslint/js": "^9.13.0",
+    "@eslint/js": "^10.0.1",
+    "@types/aws-lambda": "^8.10.160",
     "@types/jest": "^30.0.0",
-    "@types/node": "24.10.1",
-    "aws-cdk": "2.1033.0",
-    "eslint": "^9.39.1",
+    "@types/node": "^25.3.0",
+    "aws-cdk": "^2.1107.0",
+    "aws-sdk-client-mock": "^4.1.0",
+    "eslint": "^10.0.2",
     "eslint-config-prettier": "^10.1.8",
-    "eslint-plugin-prettier": "^5.5.4",
+    "eslint-plugin-prettier": "^5.5.5",
     "jest": "^30.2.0",
     "ts-jest": "^29.4.6",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.48.1"
+    "typescript-eslint": "^8.56.1"
   },
   "dependencies": {
-    "@aws-sdk/client-controltower": "^3.946.0",
-    "@aws-sdk/client-organizations": "^3.946.0",
-    "@aws-sdk/util-arn-parser": "^3.893.0",
-    "aws-cdk-lib": "2.232.1",
+    "@aws-sdk/client-controltower": "^3.996.0",
+    "@aws-sdk/client-organizations": "^3.996.0",
+    "@aws-sdk/client-sns": "^3.996.0",
+    "@aws-sdk/client-sqs": "^3.996.0",
+    "@aws-sdk/util-arn-parser": "^3.972.2",
+    "aws-cdk-lib": "2.240.0",
     "cdk-stacksets": "^0.0.152",
-    "constructs": "^10.4.3",
-    "esbuild": "^0.27.1",
+    "constructs": "^10.5.1",
+    "esbuild": "^0.27.3",
     "loglevel": "^1.9.2",
+    "prettier": "^3.8.1",
     "yaml": "^2.8.2"
   }
 }

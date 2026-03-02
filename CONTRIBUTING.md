@@ -34,15 +34,15 @@ test/
 
 **🚫 DO NOT violate these rules. This project depends heavily on predictability.**
 
-### 1. The *planner* is pure and deterministic
+### 1. The _planner_ is pure and deterministic
 
 All modules in `lib/planner/` MUST:
 
-* contain **no AWS SDK calls**
-* avoid reading the filesystem
-* avoid environment access
-* avoid time-based behavior
-* avoid randomization
+- contain **no AWS SDK calls**
+- avoid reading the filesystem
+- avoid environment access
+- avoid time-based behavior
+- avoid randomization
 
 They must take **inputs → outputs** and be fully testable.
 
@@ -50,9 +50,9 @@ They must take **inputs → outputs** and be fully testable.
 
 `budget-alerts-stack.ts` must only:
 
-* evaluate planner results
-* wire CDK constructs and StackSets
-* pass validated data to resources
+- evaluate planner results
+- wire CDK constructs and StackSets
+- pass validated data to resources
 
 ### 3. Validation is performed **before** CDK synthesis
 
@@ -62,8 +62,8 @@ They must take **inputs → outputs** and be fully testable.
 
 In particular:
 
-* TypeScript sources must compile cleanly via `npm run build`
-* No hard-coded organization ID
+- TypeScript sources must compile cleanly via `npm run build`
+- No hard-coded organization ID
   (this is resolved dynamically via the custom resource)
 
 ### 5. No test-breaking rewrites
@@ -117,10 +117,10 @@ npm test
 
 Tests focus on:
 
-* Organizational Unit tree building
-* Effective budget calculation
-* Homogeneous subtree detection
-* Stack attachment selection
+- Organizational Unit tree building
+- Effective budget calculation
+- Homogeneous subtree detection
+- Stack attachment selection
 
 The entire planner layer is fully unit-testable.
 
@@ -155,58 +155,58 @@ npx budget-alerts-init-config
 
 # 🧬 Making Changes
 
-## 1. Planner logic (lib/planner/*)
+## 1. Planner logic (lib/planner/\*)
 
 Changes must:
 
-* be **pure functions**
-* include **unit tests** for new behaviors
-* avoid dependencies outside the planner folder
-* receive architectural approval if changing core algorithm flow
+- be **pure functions**
+- include **unit tests** for new behaviors
+- avoid dependencies outside the planner folder
+- receive architectural approval if changing core algorithm flow
 
 ## 2. Organization loader (org-loader.ts)
 
 Allowed:
 
-* Using AWS SDK v3
-* Querying Organizations API
-* Returning normalized OU nodes
+- Using AWS SDK v3
+- Querying Organizations API
+- Returning normalized OU nodes
 
 Not allowed:
 
-* Writing planner logic here
-* Modifying planner output logic in this layer
+- Writing planner logic here
+- Modifying planner output logic in this layer
 
 ## 3. Budget config loader (budget-config-loader.ts)
 
 Allowed:
 
-* YAML parsing
-* YAML comment round-tripping
-* Validation
-* Synchronization logic
+- YAML parsing
+- YAML comment round-tripping
+- Validation
+- Synchronization logic
 
 Not allowed:
 
-* Introducing side effects that would break determinism
-* Moving org-structure-dependent logic into the config loader
+- Introducing side effects that would break determinism
+- Moving org-structure-dependent logic into the config loader
 
 ## 4. CDK stack (budget-alerts-stack.ts)
 
 Allowed:
 
-* Mapping planner outputs to StackSets
-* Adding CloudFormation resources
-* Creating custom resources
-* Wiring permissions
-* Adding future IAM boundaries or service integrations
+- Mapping planner outputs to StackSets
+- Adding CloudFormation resources
+- Creating custom resources
+- Wiring permissions
+- Adding future IAM boundaries or service integrations
 
 Not allowed:
 
-* Planner logic
-* Config merging logic
-* Introducing account-specific assumptions
-* Hard-coding organization IDs
+- Planner logic
+- Config merging logic
+- Introducing account-specific assumptions
+- Hard-coding organization IDs
 
 ---
 
@@ -244,9 +244,9 @@ npm publish --access public
 
 # 🗂 Branching Strategy
 
-* `main` → always stable, publishable
-* `dev` or feature branches → active development
-* PRs must include tests when affecting planner or validation logic
+- `main` → always stable, publishable
+- `dev` or feature branches → active development
+- PRs must include tests when affecting planner or validation logic
 
 ---
 
@@ -254,31 +254,31 @@ npm publish --access public
 
 Every PR must include:
 
-* [ ] Clear description of the change
-* [ ] Unit tests for new or changed planner behavior
-* [ ] No breaking changes unless discussed
-* [ ] No architectural violations
-* [ ] Maintains npm package status
-* [ ] Does not remove or bypass existing validation
+- [ ] Clear description of the change
+- [ ] Unit tests for new or changed planner behavior
+- [ ] No breaking changes unless discussed
+- [ ] No architectural violations
+- [ ] Maintains npm package status
+- [ ] Does not remove or bypass existing validation
 
 ---
 
 # 🛑 Anti-Patterns (Do Not Do This)
 
-* ❌ Adding AWS calls into planner logic
-* ❌ Running unmocked AWS calls in unit tests
-* ❌ Stubbing away planner logic to make tests pass
-* ❌ Hard-coding Organization IDs or account numbers
-* ❌ Adding features without documentation
-* ❌ Rewriting module architecture without explicit approval
+- ❌ Adding AWS calls into planner logic
+- ❌ Running unmocked AWS calls in unit tests
+- ❌ Stubbing away planner logic to make tests pass
+- ❌ Hard-coding Organization IDs or account numbers
+- ❌ Adding features without documentation
+- ❌ Rewriting module architecture without explicit approval
 
 ---
 
 # 🧠 Design Principles Summary
 
-* **Strong separation** of planner, config I/O, org discovery, and CDK stack
-* **Predictability** and **determinism** in every planner function
-* **Minimal customer boilerplate**
-* **Pure functional planning logic**
-* **Safe deployment via service-managed StackSets**
-* **Config as the single source of truth**
+- **Strong separation** of planner, config I/O, org discovery, and CDK stack
+- **Predictability** and **determinism** in every planner function
+- **Minimal customer boilerplate**
+- **Pure functional planning logic**
+- **Safe deployment via service-managed StackSets**
+- **Config as the single source of truth**

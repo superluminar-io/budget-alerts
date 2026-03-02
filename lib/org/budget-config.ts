@@ -20,13 +20,27 @@ export interface OuBudgetConfigEntry {
    * If omitted, the default thresholds ([75, 100]) will be used.
    */
   thresholds?: Thresholds;
+
+  /**
+   * If true, this ou will not have a budget attached
+   * If not specified, defaults to false
+   */
+  off?: boolean; // if true, budget is disabled for this OU
+
+  /**
+   * Optionally enable SNS topic for budget notifications for this OU.
+   * If you want aggregation to a single SNS topic, also set aggregationSnsTopicArn in the default config.
+   * Useful when you want to integrate Amazon Chatsbot with your budget notifications.
+   */
+  aggregationSnsTopicArn?: string | null;
 }
 
 export interface BudgetConfig {
   default: {
     amount?: number;
-    currency: string;
+    currency?: string;
     thresholds?: Thresholds;
+    aggregationSnsTopicArn?: string;
   };
 
   /**

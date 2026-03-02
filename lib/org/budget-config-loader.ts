@@ -56,6 +56,14 @@ function isNullableBudgetConfig(
     if (typeof currency !== 'string') {
       return false;
     }
+
+    //
+    //Step 4: Validate default.aggregationSnsTopicArn
+    //
+    const snsTopicArn = (def as Record<string, unknown>).aggregationSnsTopicArn;
+    if (snsTopicArn && typeof snsTopicArn !== 'string') {
+      return false;
+    }
   }
 
   //
@@ -67,6 +75,10 @@ function isNullableBudgetConfig(
       return false;
     }
   }
+
+  //
+  // Step 5: Validate sns topic arn in default
+  //
 
   // We intentionally do not validate entries here
   return true;
@@ -89,16 +101,14 @@ export function sanitizeBudgetConfig(
 ): BudgetConfig {
   const sanitized = { ...config, default: config.default ?? { currency: DISABLED_CURRENCY } };
   sanitized.default.thresholds ??= DEFAULT_THRESHOLDS;
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   sanitized.default.currency ??= DEFAULT_CURRENCY;
   // loop over organizationalUnits and fill in missing fields
   if (sanitized.organizationalUnits) {
     for (const [ouId, entry] of Object.entries(sanitized.organizationalUnits)) {
-      if (!entry) {
+      if (!entry || entry.off === true) {
         sanitized.organizationalUnits[ouId] = {
+          off: true,
           amount: null,
-          currency: DISABLED_CURRENCY,
-          thresholds: DEFAULT_THRESHOLDS,
         };
         continue;
       }
@@ -133,7 +143,7 @@ export function loadBudgetConfig(configPath = 'budget-config.yaml'): BudgetConfi
   try {
     parsed = yamlParse(raw);
   } catch (err) {
-    throw new Error(`Failed to parse budget config YAML at ${fullPath}: ${String(err)}`);
+    throw new Error(`Failed to parse budget config YAML at ${fullPath}`, {cause: err});
   }
 
   if (!isNullableBudgetConfig(parsed)) {

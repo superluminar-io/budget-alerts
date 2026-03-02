@@ -4,6 +4,7 @@ import {
   computeEffectiveBudgets,
   computeHomogeneousSubtrees,
   computeOuBudgetAttachments,
+  type EffectiveBudget,
   selectOuBudgetAttachments,
   validateBudgetConfig,
   type OuNode,
@@ -67,10 +68,30 @@ describe('computeEffectiveBudgets', () => {
 
     const budgets = computeEffectiveBudgets(tree, budgetConfig);
 
-    expect(budgets.get('A')).toEqual({ amount: 1000, currency: 'USD' });
-    expect(budgets.get('B')).toEqual({ amount: 100, currency: 'USD' }); // Inherited from A
-    expect(budgets.get('C')).toEqual({ amount: 500, currency: 'USD' });
-    expect(budgets.get('D')).toEqual({ amount: 100, currency: 'USD' }); // Inherited from B -> A
+    expect(budgets.get('A')).toEqual({
+      amount: 1000,
+      currency: 'USD',
+      mode: 'on',
+      thresholds: undefined,
+    });
+    expect(budgets.get('B')).toEqual({
+      amount: 100,
+      currency: 'USD',
+      mode: 'on',
+      thresholds: undefined,
+    }); // Inherited from A
+    expect(budgets.get('C')).toEqual({
+      amount: 500,
+      currency: 'USD',
+      mode: 'on',
+      thresholds: undefined,
+    });
+    expect(budgets.get('D')).toEqual({
+      amount: 100,
+      currency: 'USD',
+      mode: 'on',
+      thresholds: undefined,
+    }); // Inherited from B -> A
   });
 
   it('should use default budget for OUs without explicit config', () => {
@@ -86,10 +107,30 @@ describe('computeEffectiveBudgets', () => {
 
     const budgets = computeEffectiveBudgets(tree, budgetConfig);
 
-    expect(budgets.get('A')).toEqual({ amount: 1500, currency: 'USD' });
-    expect(budgets.get('B')).toEqual({ amount: 200, currency: 'USD' });
-    expect(budgets.get('C')).toEqual({ amount: 300, currency: 'USD' });
-    expect(budgets.get('D')).toEqual({ amount: 200, currency: 'USD' });
+    expect(budgets.get('A')).toEqual({
+      amount: 1500,
+      currency: 'USD',
+      mode: 'on',
+      thresholds: undefined,
+    });
+    expect(budgets.get('B')).toEqual({
+      amount: 200,
+      currency: 'USD',
+      mode: 'on',
+      thresholds: undefined,
+    });
+    expect(budgets.get('C')).toEqual({
+      amount: 300,
+      currency: 'USD',
+      mode: 'on',
+      thresholds: undefined,
+    });
+    expect(budgets.get('D')).toEqual({
+      amount: 200,
+      currency: 'USD',
+      mode: 'on',
+      thresholds: undefined,
+    });
   });
 });
 
@@ -175,27 +216,28 @@ describe('computeHomogeneousSubtrees', () => {
   it('should identify one large homogeneous subtree correctly', () => {
     const tree = buildOuTree(simpleValidOus);
 
-    const budgets = new Map<string, { amount: number; currency: string }>([
-      ['A', { amount: 100, currency: 'USD' }],
-      ['B', { amount: 100, currency: 'USD' }],
-      ['C', { amount: 100, currency: 'USD' }],
-      ['D', { amount: 100, currency: 'USD' }],
-      ['E', { amount: 100, currency: 'USD' }],
+    const budgets = new Map<string, EffectiveBudget>([
+      ['A', { mode: 'on', amount: 100, currency: 'USD' }],
+      ['B', { mode: 'on', amount: 100, currency: 'USD' }],
+      ['C', { mode: 'on', amount: 100, currency: 'USD' }],
+      ['D', { mode: 'on', amount: 100, currency: 'USD' }],
+      ['E', { mode: 'on', amount: 100, currency: 'USD' }],
     ]);
 
     const homogeneousSubtrees = computeHomogeneousSubtrees(tree, budgets);
 
     expect(homogeneousSubtrees).toEqual(new Set(['A']));
   });
+
   it('should identify homogeneous subtrees correctly', () => {
     const tree = buildOuTree(simpleValidOus);
 
-    const budgets = new Map<string, { amount: number; currency: string }>([
-      ['A', { amount: 100, currency: 'USD' }],
-      ['B', { amount: 100, currency: 'USD' }],
-      ['C', { amount: 200, currency: 'USD' }],
-      ['D', { amount: 100, currency: 'USD' }],
-      ['E', { amount: 300, currency: 'USD' }],
+    const budgets = new Map<string, EffectiveBudget>([
+      ['A', { mode: 'on', amount: 100, currency: 'USD' }],
+      ['B', { mode: 'on', amount: 100, currency: 'USD' }],
+      ['C', { mode: 'on', amount: 200, currency: 'USD' }],
+      ['D', { mode: 'on', amount: 100, currency: 'USD' }],
+      ['E', { mode: 'on', amount: 300, currency: 'USD' }],
     ]);
 
     const homogeneousSubtrees = computeHomogeneousSubtrees(tree, budgets);
@@ -206,12 +248,12 @@ describe('computeHomogeneousSubtrees', () => {
   it('should identify homogeneous subtrees correctly respecting thresholds', () => {
     const tree = buildOuTree(simpleValidOus);
 
-    const budgets = new Map<string, { amount: number; currency: string; thresholds: number[] }>([
-      ['A', { amount: 100, currency: 'USD', thresholds: [10] }],
-      ['B', { amount: 100, currency: 'USD', thresholds: [10] }],
-      ['C', { amount: 100, currency: 'USD', thresholds: [20] }],
-      ['D', { amount: 100, currency: 'USD', thresholds: [10] }],
-      ['E', { amount: 100, currency: 'USD', thresholds: [5] }],
+    const budgets = new Map<string, EffectiveBudget>([
+      ['A', { mode: 'on', amount: 100, currency: 'USD', thresholds: [10] }],
+      ['B', { mode: 'on', amount: 100, currency: 'USD', thresholds: [10] }],
+      ['C', { mode: 'on', amount: 100, currency: 'USD', thresholds: [20] }],
+      ['D', { mode: 'on', amount: 100, currency: 'USD', thresholds: [10] }],
+      ['E', { mode: 'on', amount: 100, currency: 'USD', thresholds: [5] }],
     ]);
 
     const homogeneousSubtrees = computeHomogeneousSubtrees(tree, budgets);
@@ -384,12 +426,12 @@ describe('selectOuBudgetAttachments', () => {
   it('should select OUs for budget attachments based on homogeneous subtrees', () => {
     const tree = buildOuTree(simpleValidOus);
 
-    const budgets = new Map<string, { amount: number; currency: string }>([
-      ['A', { amount: 100, currency: 'USD' }],
-      ['B', { amount: 100, currency: 'USD' }],
-      ['C', { amount: 200, currency: 'USD' }],
-      ['D', { amount: 100, currency: 'USD' }],
-      ['E', { amount: 300, currency: 'USD' }],
+    const budgets = new Map<string, EffectiveBudget>([
+      ['A', { mode: 'on', amount: 100, currency: 'USD' }],
+      ['B', { mode: 'on', amount: 100, currency: 'USD' }],
+      ['C', { mode: 'on', amount: 200, currency: 'USD' }],
+      ['D', { mode: 'on', amount: 100, currency: 'USD' }],
+      ['E', { mode: 'on', amount: 300, currency: 'USD' }],
     ]);
 
     const homogeneousSubtrees = computeHomogeneousSubtrees(tree, budgets);
