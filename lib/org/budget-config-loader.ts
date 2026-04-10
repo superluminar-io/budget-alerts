@@ -5,7 +5,7 @@ import { resolve } from 'path';
 import { parse as yamlParse } from 'yaml';
 import {
   DEFAULT_CURRENCY,
-  DEFAULT_THRESHOLDS,
+  DEFAULT_ALERTS,
   DISABLED_CURRENCY,
   type BudgetConfig,
   type NullableSome,
@@ -100,7 +100,7 @@ export function sanitizeBudgetConfig(
   config: NullableSome<BudgetConfig, 'default' | 'organizationalUnits'>,
 ): BudgetConfig {
   const sanitized = { ...config, default: config.default ?? { currency: DISABLED_CURRENCY } };
-  sanitized.default.thresholds ??= DEFAULT_THRESHOLDS;
+  sanitized.default.alerts ??= DEFAULT_ALERTS;
   sanitized.default.currency ??= DEFAULT_CURRENCY;
   // loop over organizationalUnits and fill in missing fields
   if (sanitized.organizationalUnits) {
@@ -112,7 +112,7 @@ export function sanitizeBudgetConfig(
         };
         continue;
       }
-      entry.thresholds ??= DEFAULT_THRESHOLDS;
+      entry.alerts ??= DEFAULT_ALERTS;
       entry.currency ??= DEFAULT_CURRENCY;
     }
   }

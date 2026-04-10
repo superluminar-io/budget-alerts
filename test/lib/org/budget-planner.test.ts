@@ -72,25 +72,25 @@ describe('computeEffectiveBudgets', () => {
       amount: 1000,
       currency: 'USD',
       mode: 'on',
-      thresholds: undefined,
+      alerts: [75, 100],
     });
     expect(budgets.get('B')).toEqual({
       amount: 100,
       currency: 'USD',
       mode: 'on',
-      thresholds: undefined,
+      alerts: [75, 100],
     }); // Inherited from A
     expect(budgets.get('C')).toEqual({
       amount: 500,
       currency: 'USD',
       mode: 'on',
-      thresholds: undefined,
+      alerts: [75, 100],
     });
     expect(budgets.get('D')).toEqual({
       amount: 100,
       currency: 'USD',
       mode: 'on',
-      thresholds: undefined,
+      alerts: [75, 100],
     }); // Inherited from B -> A
   });
 
@@ -111,25 +111,25 @@ describe('computeEffectiveBudgets', () => {
       amount: 1500,
       currency: 'USD',
       mode: 'on',
-      thresholds: undefined,
+      alerts: [75, 100],
     });
     expect(budgets.get('B')).toEqual({
       amount: 200,
       currency: 'USD',
       mode: 'on',
-      thresholds: undefined,
+      alerts: [75, 100],
     });
     expect(budgets.get('C')).toEqual({
       amount: 300,
       currency: 'USD',
       mode: 'on',
-      thresholds: undefined,
+      alerts: [75, 100],
     });
     expect(budgets.get('D')).toEqual({
       amount: 200,
       currency: 'USD',
       mode: 'on',
-      thresholds: undefined,
+      alerts: [75, 100],
     });
   });
 });
@@ -245,15 +245,15 @@ describe('computeHomogeneousSubtrees', () => {
     expect(homogeneousSubtrees).toEqual(new Set(['C', 'D', 'E']));
   });
 
-  it('should identify homogeneous subtrees correctly respecting thresholds', () => {
+  it('should identify homogeneous subtrees correctly respecting alerts', () => {
     const tree = buildOuTree(simpleValidOus);
 
     const budgets = new Map<string, EffectiveBudget>([
-      ['A', { mode: 'on', amount: 100, currency: 'USD', thresholds: [10] }],
-      ['B', { mode: 'on', amount: 100, currency: 'USD', thresholds: [10] }],
-      ['C', { mode: 'on', amount: 100, currency: 'USD', thresholds: [20] }],
-      ['D', { mode: 'on', amount: 100, currency: 'USD', thresholds: [10] }],
-      ['E', { mode: 'on', amount: 100, currency: 'USD', thresholds: [5] }],
+      ['A', { mode: 'on', amount: 100, currency: 'USD', alerts: [10] }],
+      ['B', { mode: 'on', amount: 100, currency: 'USD', alerts: [10] }],
+      ['C', { mode: 'on', amount: 100, currency: 'USD', alerts: [20] }],
+      ['D', { mode: 'on', amount: 100, currency: 'USD', alerts: [10] }],
+      ['E', { mode: 'on', amount: 100, currency: 'USD', alerts: [5] }],
     ]);
 
     const homogeneousSubtrees = computeHomogeneousSubtrees(tree, budgets);
@@ -293,7 +293,7 @@ describe('computeHomogeneousSubtrees', () => {
 
       const attachments = computeOuBudgetAttachments(ous, budgetConfig);
 
-      expect(attachments).toEqual([{ ouId: 'prod', amount: 50, currency: 'USD' }]);
+      expect(attachments).toEqual([{ ouId: 'prod', amount: 50, currency: 'USD', alerts: [75, 100] }]);
     });
 
     /**
@@ -332,8 +332,8 @@ describe('computeHomogeneousSubtrees', () => {
       expect(attachments).toHaveLength(2);
       expect(attachments).toEqual(
         expect.arrayContaining([
-          { ouId: 'dev', amount: 10, currency: 'USD' },
-          { ouId: 'prod', amount: 50, currency: 'USD' },
+          { ouId: 'dev', amount: 10, currency: 'USD', alerts: [75, 100] },
+          { ouId: 'prod', amount: 50, currency: 'USD', alerts: [75, 100] },
         ]),
       );
     });
@@ -375,8 +375,8 @@ describe('computeHomogeneousSubtrees', () => {
       expect(attachments).toHaveLength(2);
       expect(attachments).toEqual(
         expect.arrayContaining([
-          { ouId: 'payroll', amount: 20, currency: 'USD' },
-          { ouId: 'accounting', amount: 10, currency: 'USD' },
+          { ouId: 'payroll', amount: 20, currency: 'USD', alerts: [75, 100] },
+          { ouId: 'accounting', amount: 10, currency: 'USD', alerts: [75, 100] },
         ]),
       );
     });
@@ -414,8 +414,8 @@ describe('computeHomogeneousSubtrees', () => {
       expect(attachments).toHaveLength(2);
       expect(attachments).toEqual(
         expect.arrayContaining([
-          { ouId: 'finance-common', amount: 10, currency: 'USD' },
-          { ouId: 'payroll', amount: 20, currency: 'USD' },
+          { ouId: 'finance-common', amount: 10, currency: 'USD', alerts: [75, 100] },
+          { ouId: 'payroll', amount: 20, currency: 'USD', alerts: [75, 100] },
         ]),
       );
     });
@@ -465,8 +465,251 @@ describe('computeOuBudgetAttachments', () => {
     expect(attachments.length).toBe(2);
     expect(attachments).toEqual(
       expect.arrayContaining([
-        { amount: 100, currency: 'USD', ouId: 'B' },
-        { amount: 500, currency: 'USD', ouId: 'C' },
+        { amount: 100, currency: 'USD', ouId: 'B', alerts: [75, 100] },
+        { amount: 500, currency: 'USD', ouId: 'C', alerts: [75, 100] },
+      ]),
+    );
+  });
+
+  it('should handle explicit AlertConfig with actual alert type', () => {
+    const budgetConfig: BudgetConfig = {
+      default: { amount: 1000, currency: 'USD' },
+      organizationalUnits: {
+        B: {
+          amount: 100,
+          currency: 'USD',
+          alerts: [
+            { threshold: 60, type: 'actual' },
+            { threshold: 90, type: 'actual' },
+          ],
+        },
+        C: { amount: 500, currency: 'USD' },
+      },
+    };
+
+    const attachments = computeOuBudgetAttachments(simpleValidOus, budgetConfig);
+
+    expect(attachments.length).toBe(2);
+    expect(attachments).toEqual(
+      expect.arrayContaining([
+        {
+          amount: 100,
+          currency: 'USD',
+          ouId: 'B',
+          alerts: [
+            { threshold: 60, type: 'actual' },
+            { threshold: 90, type: 'actual' },
+          ],
+        },
+        { amount: 500, currency: 'USD', ouId: 'C', alerts: [75, 100] },
+      ]),
+    );
+  });
+
+  it('should handle explicit AlertConfig with forecasted alert type', () => {
+    const budgetConfig: BudgetConfig = {
+      default: { amount: 1000, currency: 'USD' },
+      organizationalUnits: {
+        B: {
+          amount: 100,
+          currency: 'USD',
+          alerts: [
+            { threshold: 80, type: 'forecasted' },
+            { threshold: 100, type: 'forecasted' },
+          ],
+        },
+        C: { amount: 500, currency: 'USD' },
+      },
+    };
+
+    const attachments = computeOuBudgetAttachments(simpleValidOus, budgetConfig);
+
+    expect(attachments.length).toBe(2);
+    expect(attachments).toEqual(
+      expect.arrayContaining([
+        {
+          amount: 100,
+          currency: 'USD',
+          ouId: 'B',
+          alerts: [
+            { threshold: 80, type: 'forecasted' },
+            { threshold: 100, type: 'forecasted' },
+          ],
+        },
+        { amount: 500, currency: 'USD', ouId: 'C', alerts: [75, 100] },
+      ]),
+    );
+  });
+
+  it('should handle mixed alert types (actual and forecasted) in same OU', () => {
+    const budgetConfig: BudgetConfig = {
+      default: { amount: 1000, currency: 'USD' },
+      organizationalUnits: {
+        B: {
+          amount: 100,
+          currency: 'USD',
+          alerts: [
+            { threshold: 50, type: 'actual' },
+            { threshold: 75, type: 'forecasted' },
+            { threshold: 90, type: 'actual' },
+            { threshold: 100, type: 'forecasted' },
+          ],
+        },
+      },
+    };
+
+    const attachments = computeOuBudgetAttachments(simpleValidOus, budgetConfig);
+
+    // B has explicit config, C inherits from default
+    // Since they have different alerts, they get separate attachments
+    expect(attachments.length).toBe(2);
+    expect(attachments).toEqual(
+      expect.arrayContaining([
+        {
+          amount: 100,
+          currency: 'USD',
+          ouId: 'B',
+          alerts: [
+            { threshold: 50, type: 'actual' },
+            { threshold: 75, type: 'forecasted' },
+            { threshold: 90, type: 'actual' },
+            { threshold: 100, type: 'forecasted' },
+          ],
+        },
+        {
+          amount: 1000,
+          currency: 'USD',
+          ouId: 'C',
+          alerts: [75, 100],
+        },
+      ]),
+    );
+  });
+
+  it('should handle mixed shorthand numbers and explicit AlertConfig', () => {
+    const budgetConfig: BudgetConfig = {
+      default: { amount: 1000, currency: 'USD' },
+      organizationalUnits: {
+        B: {
+          amount: 200,
+          currency: 'EUR',
+          alerts: [
+            60, // shorthand for { threshold: 60, type: 'actual' }
+            { threshold: 80, type: 'forecasted' },
+            95, // shorthand for { threshold: 95, type: 'actual' }
+          ],
+        },
+        C: {
+          amount: 500,
+          currency: 'USD',
+          alerts: [
+            { threshold: 70, type: 'actual' },
+            100, // shorthand
+          ],
+        },
+      },
+    };
+
+    const attachments = computeOuBudgetAttachments(simpleValidOus, budgetConfig);
+
+    expect(attachments.length).toBe(2);
+    expect(attachments).toEqual(
+      expect.arrayContaining([
+        {
+          amount: 200,
+          currency: 'EUR',
+          ouId: 'B',
+          alerts: [
+            60,
+            { threshold: 80, type: 'forecasted' },
+            95,
+          ],
+        },
+        {
+          amount: 500,
+          currency: 'USD',
+          ouId: 'C',
+          alerts: [
+            { threshold: 70, type: 'actual' },
+            100,
+          ],
+        },
+      ]),
+    );
+  });
+
+  it('should handle default config with explicit AlertConfig', () => {
+    const budgetConfig: BudgetConfig = {
+      default: {
+        amount: 1000,
+        currency: 'USD',
+        alerts: [
+          { threshold: 50, type: 'actual' },
+          { threshold: 85, type: 'forecasted' },
+        ],
+      },
+    };
+
+    const attachments = computeOuBudgetAttachments(simpleValidOus, budgetConfig);
+
+    // All OUs should inherit the default alerts
+    expect(attachments.length).toBe(1);
+    expect(attachments[0]).toEqual({
+      amount: 1000,
+      currency: 'USD',
+      ouId: 'A',
+      alerts: [
+        { threshold: 50, type: 'actual' },
+        { threshold: 85, type: 'forecasted' },
+      ],
+    });
+  });
+
+  it('should handle OU overriding default forecasted alerts with actual alerts', () => {
+    const budgetConfig: BudgetConfig = {
+      default: {
+        amount: 1000,
+        currency: 'USD',
+        alerts: [
+          { threshold: 75, type: 'forecasted' },
+          { threshold: 100, type: 'forecasted' },
+        ],
+      },
+      organizationalUnits: {
+        B: {
+          amount: 500,
+          currency: 'USD',
+          alerts: [
+            { threshold: 80, type: 'actual' },
+            { threshold: 95, type: 'actual' },
+          ],
+        },
+      },
+    };
+
+    const attachments = computeOuBudgetAttachments(simpleValidOus, budgetConfig);
+
+    expect(attachments.length).toBe(2);
+    expect(attachments).toEqual(
+      expect.arrayContaining([
+        {
+          amount: 1000,
+          currency: 'USD',
+          ouId: 'C',
+          alerts: [
+            { threshold: 75, type: 'forecasted' },
+            { threshold: 100, type: 'forecasted' },
+          ],
+        },
+        {
+          amount: 500,
+          currency: 'USD',
+          ouId: 'B',
+          alerts: [
+            { threshold: 80, type: 'actual' },
+            { threshold: 95, type: 'actual' },
+          ],
+        },
       ]),
     );
   });

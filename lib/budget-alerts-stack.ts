@@ -35,7 +35,7 @@ import {
   type OuBudgetAttachment,
   type OuNode,
 } from './org/budget-planner';
-import { type BudgetConfig } from './org/budget-config';
+import { type BudgetConfig, normalizeAlerts } from './org/budget-config';
 import { AwsCustomResource } from 'aws-cdk-lib/custom-resources';
 
 export interface BudgetAlertsStackProps extends StackProps {
@@ -453,15 +453,18 @@ class BudgetAlert extends StackSetStack {
         },
       },
       notificationsWithSubscribers:
-        props.budget.thresholds?.map((threshold) => ({
-          notification: {
-            notificationType: 'ACTUAL',
-            comparisonOperator: 'GREATER_THAN',
-            threshold: threshold,
-            thresholdType: 'PERCENTAGE',
-          },
-          subscribers,
-        })) ?? [],
+        props.budget.alerts?.map((alert) => {
+          const normalized = normalizeAlerts([alert])[0];
+          return {
+            notification: {
+              notificationType: normalized.type === 'actual' ? 'ACTUAL' : 'FORECASTED',
+              comparisonOperator: 'GREATER_THAN',
+              threshold: normalized.threshold,
+              thresholdType: 'PERCENTAGE',
+            },
+            subscribers,
+          };
+        }) ?? [],
     });
   }
 }

@@ -1,7 +1,13 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 // lib/org/budget-planner.ts
 
-import { type Thresholds, type BudgetConfig, DEFAULT_CURRENCY } from './budget-config';
+import {
+  type Thresholds,
+  type BudgetConfig,
+  DEFAULT_CURRENCY,
+  type Alerts,
+  DEFAULT_ALERTS,
+} from './budget-config';
 
 export interface OuNode {
   id: string;
@@ -12,7 +18,11 @@ export interface OuBudgetAttachment {
   ouId: string;
   amount: number;
   currency: string;
+  /**
+   * @deprecated Use `alerts` instead
+   */
   thresholds?: Thresholds;
+  alerts?: Alerts;
 }
 
 // This is the "enabled" shape you already effectively use today
@@ -20,7 +30,11 @@ export interface EffectiveBudgetOn {
   mode: 'on';
   amount: number;
   currency: string;
+  /**
+   * @deprecated Use `alerts` instead
+   */
   thresholds?: Thresholds;
+  alerts?: Alerts;
 }
 
 // Disabled is its own state. No currency sentinel.
@@ -81,6 +95,8 @@ export function validateBudgetConfig(config: BudgetConfig, knownOus: string[]) {
           throw new Error(`OU ${ouId}: off=true cannot be combined with currency`);
         if (entry.thresholds !== undefined)
           throw new Error(`OU ${ouId}: off=true cannot be combined with thresholds`);
+        if (entry.alerts !== undefined)
+          throw new Error(`OU ${ouId}: off=true cannot be combined with alerts`);
       }
 
       if (!knownOus.includes(ouId)) {
@@ -124,7 +140,7 @@ export function computeEffectiveBudgets(
         mode: 'on',
         amount: config.default.amount!,
         currency: config.default.currency ?? DEFAULT_CURRENCY,
-        thresholds: config.default.thresholds!,
+        alerts: config.default.alerts ?? config.default.thresholds ?? DEFAULT_ALERTS,
       };
       result.set(ouId, eb);
       return eb;
@@ -136,7 +152,7 @@ export function computeEffectiveBudgets(
         mode: 'on',
         amount: cfgEntry.amount,
         currency: cfgEntry.currency ?? config.default.currency ?? DEFAULT_CURRENCY,
-        thresholds: cfgEntry.thresholds ?? config.default.thresholds!,
+        alerts: cfgEntry.alerts ?? cfgEntry.thresholds ?? config.default.alerts ?? config.default.thresholds ?? DEFAULT_ALERTS,
       };
       result.set(ouId, eb);
       return eb;
@@ -160,7 +176,7 @@ export function computeEffectiveBudgets(
       mode: 'on',
       amount: config.default.amount!,
       currency: config.default.currency ?? DEFAULT_CURRENCY,
-      thresholds: config.default.thresholds!,
+      alerts: config.default.alerts ?? config.default.thresholds ?? DEFAULT_ALERTS,
     };
     result.set(ouId, eb);
     return eb;
@@ -226,7 +242,7 @@ export function isCompatibleWith(a: unknown, b: unknown): boolean {
     return (
       a.amount === b.amount &&
       a.currency === b.currency &&
-      arrayEqual(a.thresholds ?? [], b.thresholds ?? [])
+      arrayEqual(a.alerts ?? [], b.alerts ?? [])
     );
   }
   return false;
@@ -368,7 +384,7 @@ export function selectOuBudgetAttachments(
           ouId,
           amount: budget.amount,
           currency: budget.currency,
-          thresholds: budget.thresholds,
+          alerts: budget.alerts,
         });
       }
       return; // this OU covers its whole subtree

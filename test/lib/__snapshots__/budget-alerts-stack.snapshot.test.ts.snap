@@ -216,7 +216,7 @@ exports[`BudgetAlertsStack Snapshot Tests (Normalized) matches snapshot for a si
         ],
         "StackSetName": "SnapshotTestStackBudgetAlertStackSetprodD0A9C4EE",
         "TemplateURL": {
-          "Fn::Sub": "https://s3.\${AWS::Region}.\${AWS::URLSuffix}/cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}/47ebbe3a2ed256a4eebe1e8c854fef81a3fd8a06e25b81f2d82589237c34de1a.json",
+          "Fn::Sub": "https://s3.\${AWS::Region}.\${AWS::URLSuffix}/cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}/f291f68bc8cf067e977595e525d0a878ab0875bb7d0ef8194fbcd71487a76537.json",
         },
       },
       "Type": "AWS::CloudFormation::StackSet",
@@ -2232,7 +2232,7 @@ exports[`BudgetAlertsStack Snapshot Tests (Normalized) matches snapshot for over
         ],
         "StackSetName": "SnapshotTestStackBudgetAlertStackSetaccounting0AA9FC10",
         "TemplateURL": {
-          "Fn::Sub": "https://s3.\${AWS::Region}.\${AWS::URLSuffix}/cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}/37680ac61d60b500963ca1fef7f2fa7381cbbcb686cbd24307372f0eb23802ff.json",
+          "Fn::Sub": "https://s3.\${AWS::Region}.\${AWS::URLSuffix}/cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}/ab1ff21efef6c58f88a929f5ef185b239da542e170d86107489ee5114c2c995d.json",
         },
       },
       "Type": "AWS::CloudFormation::StackSet",
@@ -2293,7 +2293,7 @@ exports[`BudgetAlertsStack Snapshot Tests (Normalized) matches snapshot for over
         ],
         "StackSetName": "SnapshotTestStackBudgetAlertStackSetpayroll0ECEEDFC",
         "TemplateURL": {
-          "Fn::Sub": "https://s3.\${AWS::Region}.\${AWS::URLSuffix}/cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}/958205c09ba6a9dc61c642415287b2ae3a2c06cb06ad908e24a672b1f07b5bba.json",
+          "Fn::Sub": "https://s3.\${AWS::Region}.\${AWS::URLSuffix}/cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}/798d864ff146fb7c759928b2d5a6faadf7e90ded6b52e5c4ae827d36cf12b0f3.json",
         },
       },
       "Type": "AWS::CloudFormation::StackSet",
@@ -3868,7 +3868,7 @@ exports[`BudgetAlertsStack Snapshot Tests (Normalized) matches snapshot for sibl
         ],
         "StackSetName": "SnapshotTestStackBudgetAlertStackSetdev4313E270",
         "TemplateURL": {
-          "Fn::Sub": "https://s3.\${AWS::Region}.\${AWS::URLSuffix}/cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}/37680ac61d60b500963ca1fef7f2fa7381cbbcb686cbd24307372f0eb23802ff.json",
+          "Fn::Sub": "https://s3.\${AWS::Region}.\${AWS::URLSuffix}/cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}/ab1ff21efef6c58f88a929f5ef185b239da542e170d86107489ee5114c2c995d.json",
         },
       },
       "Type": "AWS::CloudFormation::StackSet",
@@ -3929,7 +3929,7 @@ exports[`BudgetAlertsStack Snapshot Tests (Normalized) matches snapshot for sibl
         ],
         "StackSetName": "SnapshotTestStackBudgetAlertStackSetprodD0A9C4EE",
         "TemplateURL": {
-          "Fn::Sub": "https://s3.\${AWS::Region}.\${AWS::URLSuffix}/cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}/47ebbe3a2ed256a4eebe1e8c854fef81a3fd8a06e25b81f2d82589237c34de1a.json",
+          "Fn::Sub": "https://s3.\${AWS::Region}.\${AWS::URLSuffix}/cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}/f291f68bc8cf067e977595e525d0a878ab0875bb7d0ef8194fbcd71487a76537.json",
         },
       },
       "Type": "AWS::CloudFormation::StackSet",

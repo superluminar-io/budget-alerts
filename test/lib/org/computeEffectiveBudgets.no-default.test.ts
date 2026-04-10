@@ -4,7 +4,7 @@ import {
   type EffectiveBudgetOn,
 } from '../../../lib/org/budget-planner';
 import { makeConfig, treeFrom } from '../../helpers/ouTree';
-import { DEFAULT_THRESHOLDS } from '../../../lib/org/budget-config';
+import { DEFAULT_ALERTS } from '../../../lib/org/budget-config';
 
 describe('computeEffectiveBudgets - no default', () => {
   test('no default + no overrides => all OUs undefined', () => {
@@ -49,13 +49,13 @@ describe('computeEffectiveBudgets - no default', () => {
       mode: 'on',
       amount: 123,
       currency: 'EUR',
-      thresholds: DEFAULT_THRESHOLDS,
+      alerts: DEFAULT_ALERTS,
     });
     expect(eff.get('ou-b')).toEqual({
       mode: 'on',
       amount: 123,
       currency: 'EUR',
-      thresholds: DEFAULT_THRESHOLDS,
+      alerts: DEFAULT_ALERTS,
     });
   });
 
@@ -122,16 +122,16 @@ describe('computeOuBudgetAttachments - no default', () => {
         ouId: 'ou-b',
         amount: 100,
         currency: 'EUR',
-        thresholds: DEFAULT_THRESHOLDS,
+        alerts: DEFAULT_ALERTS,
       },
     ]);
   });
 
-  test('same amount + different thresholds leads to different attachments', () => {
+  test('same amount + different alerts leads to different attachments', () => {
     // r
     //  └─ ou-a (100 EUR)
-    //      ├─ ou-b (100 EUR, uses default thresholds)
-    //      └─ ou-c (100 EUR, custom thresholds)
+    //      ├─ ou-b (100 EUR, uses default alerts)
+    //      └─ ou-c (100 EUR, custom alerts)
     const ous = [
       { id: 'ou-a', parentId: null },
       { id: 'ou-b', parentId: 'ou-a' },
@@ -139,7 +139,7 @@ describe('computeOuBudgetAttachments - no default', () => {
     ];
     const config = makeConfig({
       organizationalUnits: {
-        'ou-a': { amount: 100, currency: 'EUR', thresholds: [50, 90] },
+        'ou-a': { amount: 100, currency: 'EUR', alerts: [50, 90] },
         'ou-b': { amount: 100, currency: 'EUR' },
       },
     });
@@ -147,8 +147,8 @@ describe('computeOuBudgetAttachments - no default', () => {
     const attachments = computeOuBudgetAttachments(ous, config);
 
     expect(attachments).toEqual([
-      { ouId: 'ou-b', amount: 100, currency: 'EUR', thresholds: DEFAULT_THRESHOLDS },
-      { ouId: 'ou-c', amount: 100, currency: 'EUR', thresholds: [50, 90] },
+      { ouId: 'ou-b', amount: 100, currency: 'EUR', alerts: DEFAULT_ALERTS },
+      { ouId: 'ou-c', amount: 100, currency: 'EUR', alerts: [50, 90] },
     ]);
   });
 });

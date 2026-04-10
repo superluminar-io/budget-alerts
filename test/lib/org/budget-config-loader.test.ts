@@ -183,11 +183,183 @@ describe('loadBudgetConfig', () => {
       const result = sanitizeBudgetConfig(minimalConfig);
 
       expect(result).toEqual(minimalConfig);
-      expect(result.default.thresholds).toBeDefined();
-      expect(result.default.thresholds).toEqual([75, 100]);
+      expect(result.default.alerts).toBeDefined();
+      expect(result.default.alerts).toEqual([75, 100]);
       expect(result.organizationalUnits).toBeUndefined();
       expect(result.default.amount).toBeUndefined();
       expect(result.default.currency).toBe('USD');
+    });
+
+    it('accepts explicit AlertConfig with actual alert type in default config', () => {
+      const configWithActualAlerts: BudgetConfig = {
+        default: {
+          currency: 'USD',
+          amount: 1000,
+          alerts: [
+            { threshold: 50, type: 'actual' },
+            { threshold: 90, type: 'actual' },
+          ],
+        },
+      };
+
+      const result = sanitizeBudgetConfig(configWithActualAlerts);
+
+      expect(result.default.alerts).toEqual([
+        { threshold: 50, type: 'actual' },
+        { threshold: 90, type: 'actual' },
+      ]);
+    });
+
+    it('accepts explicit AlertConfig with forecasted alert type in default config', () => {
+      const configWithForecastedAlerts: BudgetConfig = {
+        default: {
+          currency: 'USD',
+          amount: 1000,
+          alerts: [
+            { threshold: 80, type: 'forecasted' },
+            { threshold: 100, type: 'forecasted' },
+          ],
+        },
+      };
+
+      const result = sanitizeBudgetConfig(configWithForecastedAlerts);
+
+      expect(result.default.alerts).toEqual([
+        { threshold: 80, type: 'forecasted' },
+        { threshold: 100, type: 'forecasted' },
+      ]);
+    });
+
+    it('accepts mixed alerts (numbers and explicit AlertConfig) in default config', () => {
+      const configWithMixedAlerts: BudgetConfig = {
+        default: {
+          currency: 'USD',
+          amount: 1000,
+          alerts: [
+            50, // shorthand for { threshold: 50, type: 'actual' }
+            { threshold: 75, type: 'forecasted' },
+            100, // shorthand for { threshold: 100, type: 'actual' }
+          ],
+        },
+      };
+
+      const result = sanitizeBudgetConfig(configWithMixedAlerts);
+
+      expect(result.default.alerts).toEqual([
+        50,
+        { threshold: 75, type: 'forecasted' },
+        100,
+      ]);
+    });
+
+    it('accepts explicit AlertConfig with actual alert type in OU config', () => {
+      const configWithOuActualAlerts: BudgetConfig = {
+        default: {
+          currency: 'USD',
+          amount: 1000,
+        },
+        organizationalUnits: {
+          'ou-123': {
+            amount: 500,
+            currency: 'EUR',
+            alerts: [
+              { threshold: 60, type: 'actual' },
+              { threshold: 85, type: 'actual' },
+            ],
+          },
+        },
+      };
+
+      const result = sanitizeBudgetConfig(configWithOuActualAlerts);
+
+      expect(result.organizationalUnits?.['ou-123']?.alerts).toEqual([
+        { threshold: 60, type: 'actual' },
+        { threshold: 85, type: 'actual' },
+      ]);
+    });
+
+    it('accepts explicit AlertConfig with forecasted alert type in OU config', () => {
+      const configWithOuForecastedAlerts: BudgetConfig = {
+        default: {
+          currency: 'USD',
+          amount: 1000,
+        },
+        organizationalUnits: {
+          'ou-456': {
+            amount: 750,
+            currency: 'GBP',
+            alerts: [
+              { threshold: 70, type: 'forecasted' },
+              { threshold: 95, type: 'forecasted' },
+            ],
+          },
+        },
+      };
+
+      const result = sanitizeBudgetConfig(configWithOuForecastedAlerts);
+
+      expect(result.organizationalUnits?.['ou-456']?.alerts).toEqual([
+        { threshold: 70, type: 'forecasted' },
+        { threshold: 95, type: 'forecasted' },
+      ]);
+    });
+
+    it('accepts mixed alert types (actual and forecasted) in same OU config', () => {
+      const configWithMixedOuAlerts: BudgetConfig = {
+        default: {
+          currency: 'USD',
+          amount: 1000,
+        },
+        organizationalUnits: {
+          'ou-789': {
+            amount: 2000,
+            currency: 'USD',
+            alerts: [
+              { threshold: 50, type: 'actual' },
+              { threshold: 75, type: 'forecasted' },
+              { threshold: 90, type: 'actual' },
+              { threshold: 100, type: 'forecasted' },
+            ],
+          },
+        },
+      };
+
+      const result = sanitizeBudgetConfig(configWithMixedOuAlerts);
+
+      expect(result.organizationalUnits?.['ou-789']?.alerts).toEqual([
+        { threshold: 50, type: 'actual' },
+        { threshold: 75, type: 'forecasted' },
+        { threshold: 90, type: 'actual' },
+        { threshold: 100, type: 'forecasted' },
+      ]);
+    });
+
+    it('handles mixed shorthand numbers and explicit AlertConfig in OU', () => {
+      const configWithMixedOuAlerts: BudgetConfig = {
+        default: {
+          currency: 'USD',
+        },
+        organizationalUnits: {
+          'ou-abc': {
+            amount: 1500,
+            alerts: [
+              60, // shorthand actual
+              { threshold: 80, type: 'forecasted' },
+              { threshold: 95, type: 'actual' },
+              100, // shorthand actual
+            ],
+          },
+        },
+      };
+
+      const result = sanitizeBudgetConfig(configWithMixedOuAlerts);
+
+      expect(result.organizationalUnits?.['ou-abc']?.alerts).toEqual([
+        60,
+        { threshold: 80, type: 'forecasted' },
+        { threshold: 95, type: 'actual' },
+        100,
+      ]);
     });
   });
 });
