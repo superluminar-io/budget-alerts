@@ -31,6 +31,7 @@
     "README.md",
     "LICENSE"
   ],
+  "type": "commonjs",
   "license": "MIT",
   "publishConfig": {
     "access": "public"
