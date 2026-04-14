@@ -42,7 +42,7 @@ jobs:
       # OPTIONAL: Comment test results on the PR
       - name: Comment test status on PR
         if: success() || failure()
-        uses: marocchino/sticky-pull-request-comment@v2
+        uses: marocchino/sticky-pull-request-comment@v3
         with:
           header: test-results
           message: |
