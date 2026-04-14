@@ -50,15 +50,15 @@
     "ts-jest": "^29.4.9",
     "ts-node": "^10.9.2",
     "typescript": "^6.0.2",
-    "typescript-eslint": "^8.58.1"
+    "typescript-eslint": "^8.58.2"
   },
   "dependencies": {
-    "@aws-sdk/client-controltower": "^3.1028.0",
-    "@aws-sdk/client-organizations": "^3.1028.0",
-    "@aws-sdk/client-sns": "^3.1028.0",
-    "@aws-sdk/client-sqs": "^3.1028.0",
+    "@aws-sdk/client-controltower": "^3.1030.0",
+    "@aws-sdk/client-organizations": "^3.1030.0",
+    "@aws-sdk/client-sns": "^3.1030.0",
+    "@aws-sdk/client-sqs": "^3.1030.0",
     "@aws-sdk/util-arn-parser": "^3.972.3",
-    "aws-cdk-lib": "2.248.0",
+    "aws-cdk-lib": "2.249.0",
     "cdk-stacksets": "^0.0.153",
     "constructs": "^10.6.0",
     "esbuild": "^0.28.0",
